@@ -7,6 +7,12 @@ cmake ..
 make
 ```
 
+Before the module can load firmwares they must be placed where the kernel can load them. This is currently a manual step
+
+```
+sudo cp fw/* /lib/firmware
+```
+
 To load driver into kernel
 
 ```

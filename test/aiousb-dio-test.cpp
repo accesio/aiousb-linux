@@ -17,8 +17,10 @@ int main (int arg, char **argv)
 {
     int status;
     aiousb_device_handle device;
-    
-    status = aiousb_device_open("/dev/accesio/usb_dio_32i_3", &device);
+
+    aiousb_init();
+
+    status = aiousb_device_handle_by_path("/dev/accesio/usb_dio_32i_3", &device);
 
     if (status)
     {
@@ -114,5 +116,4 @@ int main (int arg, char **argv)
 
         printf("break\n");
     }
-    aiousb_device_close(device);
 }

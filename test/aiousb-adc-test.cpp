@@ -22,7 +22,8 @@ int main (int arg, char **argv)
   uint8_t *config_buff = NULL;;
   uint32_t config_size = 0;
 
-  status = aiousb_device_open("/dev/accesio/usb_ai16_64ma_3", &device);
+  aiousb_init();
+  status = aiousb_device_handle_by_path("/dev/accesio/usb_ai16_64ma_3", &device);
 
   if (status)
   {
@@ -45,8 +46,5 @@ int main (int arg, char **argv)
 
 
   free(config_buff);
-
-
-    aiousb_device_close(device);
 }
 
