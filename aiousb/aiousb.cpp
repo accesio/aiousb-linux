@@ -245,7 +245,7 @@ int aiousb_init()
 
   dir = opendir("/dev/accesio/");
 
-  if (dir == nullptr)
+  if (dir == NULL)
     {
       aiousb_library_err_print("Unable to open device directory (%s)", strerror(errno));
       return -EPERM;
@@ -279,7 +279,7 @@ void aiousb_device_close(aiousb_device_handle device)
 int aiousb_device_handle_by_path (const char *fname, aiousb_device_handle *device)
 {
   int i;
-  char *real_path = nullptr;
+  char *real_path = NULL;
   int ret_val = -1;
 
   for ( i = 0 ; i < aiousb_device_count ; i++)
