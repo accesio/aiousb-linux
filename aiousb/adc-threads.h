@@ -32,6 +32,8 @@ struct adc_continuous_buffer
 
 typedef struct adc_continuous_buffer * adc_continuous_buffer_handle;
 
+struct adc_cont_acq_worker_context;
+
 struct adc_cont_buff_worker_context
 {
   uint32_t bytes_per_buff;
@@ -39,13 +41,14 @@ struct adc_cont_buff_worker_context
   sem_t blank_buf_sem;
   sem_t data_buf_sem;
   sem_t kill_sem;
-  adc_cont_callback *callback;
+  adc_cont_callback callback;
   uint32_t callback_context;
   int num_buffs;
   adc_continuous_buffer_handle *buf_buf;
   int next_index_in;
   int next_index_out;
   int terminate;
+  struct adc_cont_acq_worker_context *adc_cont_acq_worker_context;
 };
 struct adc_cont_acq_worker_context
 {
@@ -61,6 +64,7 @@ struct adc_cont_acq_worker_context
   int terminate;
 };
 
+void *adc_cont_buff_worker_execute(void *context);
 void *adc_worker_execute (void *context);
 
 #endif

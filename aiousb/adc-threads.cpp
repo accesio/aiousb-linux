@@ -188,7 +188,7 @@ adc_cont_buff_worker_get_blank_buff (struct adc_cont_buff_worker_context *contex
 }
 
 void adc_cont_buff_worker_put_blank_buff(struct adc_cont_buff_worker_context *context, 
-                                                                    struct adc_continuous_buffer *cont_buf)
+                                        struct adc_continuous_buffer *cont_buf)
 {
   pthread_mutex_lock(&context->buff_mutex);
   cont_buf->buf_state = buf_state_blank;
@@ -197,7 +197,7 @@ void adc_cont_buff_worker_put_blank_buff(struct adc_cont_buff_worker_context *co
 }
 
 void adc_cont_buff_worker_put_data_buff(struct adc_cont_buff_worker_context *context,
-                                                                  struct adc_continuous_buffer *cont_buff)
+                                        struct adc_continuous_buffer *cont_buff)
 {
   pthread_mutex_lock(&context->buff_mutex);
   cont_buff->buf_state = buf_state_got_data;
@@ -236,6 +236,34 @@ adc_cont_buff_worker_get_data_buf_or_killed (struct adc_cont_buff_worker_context
     }while (ret_val == NULL);
 }
 
+void *adc_cont_buff_worker_execute(void *context)
+{
+  struct adc_cont_buff_worker_context *this_context = 
+                            (struct adc_cont_buff_worker_context *)context;
+  struct adc_continuous_buffer *this_buff = NULL;
+
+  do
+    {
+      this_buff = adc_cont_buff_worker_get_data_buf_or_killed(this_context);
+
+      if (this_buff == NULL)
+        {
+          (*this_context->callback)(NULL,
+                                  0,
+                                  ADC_CONT_CALLBACK_FLAG_END_STREAM,
+                                  this_context->callback_context);
+        }
+      else if ((this_buff->used_size) || (this_buff->flags))
+        {
+          (*this_context->callback)((uint16_t*)this_buff->ad_buff,
+                                    this_buff->used_size,
+                                    this_buff->flags,
+                                    this_context->callback_context);
+        }
+
+    }while (!__sync_and_and_fetch(&this_context->terminate, 0x1));
+}
+
 ///////////////////adc continuous worker definitions
 
 void adc_cont_acq_worker_do_bc_control(aiousb_device_handle device,
@@ -250,18 +278,18 @@ void adc_cont_acq_worker_do_bc_control(aiousb_device_handle device,
 
 void *adc_cont_acq_worker_execute (void *context)
 {
-  struct adc_cont_acq_worker_context *adc_cont_acq_worker_context = 
+  struct adc_cont_acq_worker_context *this_context = 
                                   (struct adc_cont_acq_worker_context *)context;
 
   uint32_t bytes_left, data_size, status;
   struct adc_continuous_buffer *this_buff;
   
 
-  adc_cont_acq_worker_context->io_status = 0;
+  this_context->io_status = 0;
 
-  if (adc_cont_acq_worker_context->bcs_style == bcs_dio)
+  if (this_context->bcs_style == bcs_dio)
     {
-      aiousb_generic_vendor_write(adc_cont_acq_worker_context->device,
+      aiousb_generic_vendor_write(this_context->device,
                                     0xbc,
                                     0x3,
                                     0,
@@ -270,9 +298,9 @@ void *adc_cont_acq_worker_execute (void *context)
     }
   else
     {
-      if (adc_cont_acq_worker_context->b_counter_control)
+      if (this_context->b_counter_control)
         {
-          aiousb_generic_vendor_write(adc_cont_acq_worker_context->device,
+          aiousb_generic_vendor_write(this_context->device,
                                         0xc5,
                                         0x3,
                                         0,
@@ -281,20 +309,118 @@ void *adc_cont_acq_worker_execute (void *context)
         }
       else
         {
-          adc_cont_acq_worker_do_bc_control(adc_cont_acq_worker_context->device,
+          adc_cont_acq_worker_do_bc_control(this_context->device,
                                               0,
                                               0x01000007);
         }
     }
-  pthread_mutex_lock(&adc_cont_acq_worker_context->start_cond_mutex);
-  pthread_cond_signal(&adc_cont_acq_worker_context->start_cond);
-  pthread_mutex_unlock(&adc_cont_acq_worker_context->start_cond_mutex);
+  pthread_mutex_lock(&this_context->start_cond_mutex);
+  pthread_cond_signal(&this_context->start_cond);
+  pthread_mutex_unlock(&this_context->start_cond_mutex);
 
   
-  while (!__sync_and_and_fetch (&adc_cont_acq_worker_context->terminate, 0x1))
+  while (!__sync_and_and_fetch (&this_context->terminate, 0x1))
   {
+    this_buff = adc_cont_buff_worker_get_blank_buff(
+      this_context->adc_cont_buff_worker_context,
+      0);
+    this_buff->used_size = 0;
 
+    status = aiousb_generic_bulk_in(this_context->device,
+      0,
+      this_buff->ad_buff,
+      this_context->adc_cont_buff_worker_context->bytes_per_buff,
+      (int *)&this_buff->used_size);
+
+     if (status)
+       {
+         if (this_context->bcs_style == bcs_dio)
+            {
+              aiousb_generic_vendor_write(this_context->device,
+                                            0xbc,
+                                            0x10,
+                                            0,
+                                            0,
+                                            NULL);
+            }
+         else
+            {
+              adc_cont_acq_worker_do_bc_control(this_context->device, 0, 0x00020002);
+            }
+            //TODO: Is there a clean way out of this?
+            aiousb_library_err_print("error in bulk in call. Bailing");
+            pthread_exit(NULL);
+       }
+      if (this_buff->used_size != 0)
+        {
+          adc_cont_buff_worker_put_data_buff(
+                                    this_context->adc_cont_buff_worker_context,
+                                    this_buff);
+        }
+      else
+        {
+          adc_cont_buff_worker_put_blank_buff(
+                                    this_context->adc_cont_buff_worker_context,
+                                    this_buff);
+        }
   }
+
+  if (this_context->bcs_style == bcs_dio)
+    {
+      aiousb_generic_vendor_write(this_context->device,
+                                    0xbc,
+                                    0x10,
+                                    0,
+                                    0,
+                                    NULL);
+    }
+  else
+    {
+      adc_cont_acq_worker_do_bc_control(this_context->device, 0, 0x00020002);
+    } 
+
+  bytes_left = 0;
+  data_size = sizeof(bytes_left);
+
+  aiousb_generic_vendor_read(this_context->device,
+                          0xbc,
+                          0,
+                          0,
+                          data_size, &bytes_left);
+
+  bytes_left &= 0xffff;
+
+  if ( 0 != bytes_left)
+    {
+      this_buff = adc_cont_buff_worker_get_blank_buff(
+                                this_context->adc_cont_buff_worker_context,
+                                0);
+      this_buff->used_size = 0;
+      data_size=this_context->adc_cont_buff_worker_context->bytes_per_buff;
+
+      bytes_left = data_size < bytes_left ? data_size : bytes_left;
+
+      status = aiousb_generic_bulk_in(this_context->device,
+                                          0,
+                                          this_buff->ad_buff,
+                                          bytes_left,
+                                          (int *)&this_buff->used_size);
+
+      if ((status) || (this_buff->used_size == 0))
+        {
+          adc_cont_buff_worker_put_blank_buff(
+                              this_context->adc_cont_buff_worker_context,
+                              this_buff);
+        }
+      else
+        {
+          adc_cont_buff_worker_put_data_buff(
+                                this_context->adc_cont_buff_worker_context,
+                                this_buff);
+        }
+    }
+
+
 
 }
 
