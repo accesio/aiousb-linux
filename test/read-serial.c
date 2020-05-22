@@ -63,35 +63,26 @@ int main (int *argc, char **argv)
         unsigned long size = sizeof(serial_num);
         int status;
 
-        //Result := GenericVendorRead(DeviceIndex, $A2, $1DF8, 0, L, @Content);
-
         if (fd < 0)
         {
                 printf("fd = %d\n", fd);
                 exit(1);
         }
 
-        //read the serial number
         {
         status = generic_vendor_read(fd, 0xa2, 0x1df8, 0, size, &serial_num);
 
         printf("status = %d, serial_num = %llx\n", status, serial_num);
         }
 
-        //configure all bits as output and set them to one
         {
         unsigned char data[6] = {0};
         data[0] = 0xff;
         data[4] = 0xff;
-        //memset(data, 0xff, sizeof(data));
         status = generic_vendor_write (fd, 0x12, 0, 0, sizeof(data), data);
         printf("status after write = %d\n", status);
         }
 
-        
-
         close(fd);
-        
-
         return 0;
 }

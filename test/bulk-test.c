@@ -111,47 +111,13 @@ int main (int *argc, char **argv)
         printf("writing config block to device\n");
         generic_vendor_write(fd, 0xbe, 0, 0, sizeof(config_block), config_block);
 
-        // int bytesTransferred = usb->usb_control_transfer( usb, 
-        //                                                   USB_WRITE_TO_DEVICE,
-        //                                                   AUR_ADC_SET_CONFIG,
-        //                                                   0,
-        //                                                   0,
-        //                                                   configBlock->registers,
-        //                                                   configBlock->size,
-        //                                                   configBlock->timeout
-        //                                                   );
-
         printf("writing start acquiring block command\n");
         generic_vendor_write(fd, 0xbc, NUM_SAMPLES >> 16, NUM_SAMPLES, sizeof(bcdata), bcdata); 
 
-//             /* BC */
-//     bytesTransferred = usb->usb_control_transfer(usb,
-//                                                  USB_WRITE_TO_DEVICE, 
-//                                                  AUR_START_ACQUIRING_BLOCK, //188
-//                                                  (numSamples >> 16),           /* High Samples */
-//                                                  ( unsigned short )numSamples, /* Low samples */
-//                                                  bcdata,
-//                                                  sizeof(bcdata),
-//                                                  deviceDesc->commTimeout
-//                                                  );
-//     if ( bytesTransferred != (int)sizeof(bcdata) ) { 
-//         result = -LIBUSB_RESULT_TO_AIOUSB_RESULT(bytesTransferred);       
-//         goto out_freebuf_AIOUSB_GetScan;
-//     }
 
         printf("writing immediate to device\n");
         generic_vendor_write(fd, 0xbf, 0, 0, 0, counts);
-//     /* BF */
-//     bytesTransferred = usb->usb_control_transfer(usb,
-//                                                  USB_WRITE_TO_DEVICE,
-//                                                  AUR_ADC_IMMEDIATE, //191 
-//                                                  0, 
-//                                                  0, 
-//                                                  ( unsigned char* )sampleBuffer, 
-//                                                  0,
-//                                                  deviceDesc->commTimeout
-//                                                  );
-//     if (bytesTransferred == 0) {
+
         printf("calling bulk in\n");
         generic_bulk_in(fd, 0, counts, sizeof(counts), &transferred);
 
@@ -165,16 +131,6 @@ int main (int *argc, char **argv)
                 }
                 printf("0x%x  ", counts[i]);
         }
-
-//         libusbresult = adc_get_bulk_data( &deviceDesc->cachedConfigBlock,
-//                                          usb,
-//                                          LIBUSB_ENDPOINT_IN | USB_BULK_READ_ENDPOINT,
-//                                          ( unsigned char* )sampleBuffer, 
-//                                          numSamples * sizeof(unsigned short), 
-//                                          (int*)&bytesTransferred,
-//                                          deviceDesc->commTimeout
-//                                           );
-
 
         return 0;
 }
