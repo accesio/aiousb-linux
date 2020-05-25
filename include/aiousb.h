@@ -2,6 +2,7 @@
 #define AIOUSB_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include "accesio_usb_ioctl.h"
 
 typedef struct aiousb_device* aiousb_device_handle;
@@ -241,5 +242,12 @@ int aiousb_adc_set_oversample(unsigned long device_index, uint8_t oversample);
 
 int aiousb_adc_set_config(unsigned long device_index, uint8_t *config_buff,
               uint32_t *config_size);
+
+
+//to be sorted?
+
+int aiousb_abort_pipe(aiousb_device_handle device);
+int aiousb_abort_pipe(unsigned long device_index);
+
 
 #endif

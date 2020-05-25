@@ -23,3 +23,8 @@ target_link_libraries(aiousb-adc-test ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
 target_link_libraries(aiousb-adc-test m)
 target_link_libraries(aiousb-adc-test pthread)
 
+add_executable(aiousb-adc-getscanv-test aiousb-adc-getscanv-test.cpp)
+target_link_libraries(aiousb-adc-getscanv-test ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
+target_link_libraries(aiousb-adc-getscanv-test m)
+target_link_libraries(aiousb-adc-getscanv-test pthread)
+
