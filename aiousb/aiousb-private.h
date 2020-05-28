@@ -7,8 +7,10 @@
   do { printf( "%s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __FUNCTION__, \
       ##__VA_ARGS__); } while (0);
 
+#define DEBUG 0
+
 #define aiousb_debug_print(fmt, ...) \
-    do { printf ("%s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, \
+    do { if (DEBUG) printf ("%s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, \
       ##__VA_ARGS__); } while (0);
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))

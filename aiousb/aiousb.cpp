@@ -2001,11 +2001,11 @@ int aiousb_get_scan_v(aiousb_device_handle device, double *data)
             {
               v = v * 2 - 1;
             }
-          if (range_code & 0x2)
+          if ((range_code & 0x2) == 0)
             {
               v = v * 2;
             }
-          if (range_code & 0x4)
+          if ((range_code & 0x4) == 0)
             {
               v = v * 5;
             }

@@ -13,11 +13,13 @@ aiousb_device_handle device;
 
 #define START_CHANNEL 0
 #define END_CHANNEL 15
+#define LOOP_COUNT 10000
 
 int main (int arg, char **argv)
 { 
   double voltages[64];
   int status;
+  timespec begin, end;
 
   status = aiousb_init();
 
@@ -36,6 +38,10 @@ int main (int arg, char **argv)
 
   err_printf("status = %d", status);
 
+  status = aiousb_adc_set_oversample(device, 5);
+
+  err_printf("status = %d", status);
+
 
   status = aiousb_get_scan_v(device, voltages);
 
@@ -46,6 +52,15 @@ int main (int arg, char **argv)
     printf("%d: %f\n", i, voltages[i]);
   }
 
+  clock_gettime(CLOCK_MONOTONIC, &begin);
 
+  for (int i = 0; i < LOOP_COUNT ; i++)
+  {
+    status = aiousb_get_scan_v(device, voltages);
+  }
+
+  clock_gettime(CLOCK_MONOTONIC, &end);
+
+  printf("aiousb_get_scan_v Loop: Channels=%d, scans = %d,  time=%ldms\n", END_CHANNEL-START_CHANNEL+1, LOOP_COUNT, timespec_sub_to_msec(&end, &begin));
 
 }
