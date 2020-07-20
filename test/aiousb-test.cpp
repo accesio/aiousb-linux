@@ -53,7 +53,6 @@ void read_serial_num(unsigned long device_index)
 
 int main(int argc, char **argv)
 {
-	int fd;
 	int status;
 
 	status = aiousb_init();

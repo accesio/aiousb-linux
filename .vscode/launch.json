@@ -1,0 +1,95 @@
+{
+        // Use IntelliSense to learn about possible attributes.
+        // Hover to view descriptions of existing attributes.
+        // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+        "version": "0.2.0",
+        "configurations": [
+        {
+                "name": "(gdb) Launch continuous",
+                "type": "cppdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/build/test/aiousb-continuous-acquisition",
+                "args": ["/dev/accesio/usb_aio16_16f_3"],
+                "stopAtEntry": false,
+                "cwd": "${workspaceFolder}",
+                "environment": [],
+                "externalConsole": false,
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+        },
+        {
+                "name": "(gdb) Launch aiousb-adc-getscanv-test",
+                "type": "cppdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/build/test/aiousb-adc-getscanv-test",
+                "args": ["/dev/accesio/usb_aio16_16f_3"],
+                "stopAtEntry": false,
+                "cwd": "${workspaceFolder}",
+                "environment": [],
+                "externalConsole": false,
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+        },
+                {
+                        "name": "(gdb) Launch aiousb",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/test/aiousb-test",
+                        "args": [
+                                "/dev/accesio/usb_ai16_64ma_3"
+                        ],
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                            {
+                                "description": "Enable pretty-printing for gdb",
+                                "text": "-enable-pretty-printing",
+                                "ignoreFailures": true
+                            }
+                        ]
+                },
+                {
+                        "name": "Python: Current File",
+                        "type": "python",
+                        "request": "launch",
+                        "program": "${file}",
+                        "console": "integratedTerminal"
+                },
+                {
+                        "name": "(gdb) Launch aiousb-adc",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/test/aiousb-adc-test",
+                        "args": [
+                                "/dev/accesio/usb_dio_32i_1"
+                        ],
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ]
+                }
+        ]
+}

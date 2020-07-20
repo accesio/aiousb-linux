@@ -298,6 +298,7 @@ void *adc_cont_acq_worker_execute (void *context)
     }
   else
     {
+      //counter control is always zero
       if (this_context->b_counter_control)
         {
           aiousb_generic_vendor_write(this_context->device,
@@ -420,7 +421,239 @@ void *adc_cont_acq_worker_execute (void *context)
         }
     }
 
-
-
 }
 
+ContinuousBufferManager::ContinuousBufferManager(int Count, size_t Size) : mSize(Size)
+{
+  mEmptyBuffers = new SafeQueue<ContBuff *>();
+  for (int i = 0 ; i < Count ; i++)
+    {
+      ContBuff *Current = new ContBuff;
+      Current->data = new uint16_t[Size];
+      Current->used = 0;
+
+      mEmptyBuffers->enqueue(Current);
+    }
+  mDataBuffers = new SafeQueue<ContBuff *>();
+}
+
+ContinuousBufferManager::~ContinuousBufferManager()
+{
+  ContBuff *Current;
+  do
+    {
+      Current = mEmptyBuffers->tryDequeue();
+      if (Current != NULL )
+      {
+        delete[] Current->data;
+        delete Current;
+      }
+    }while (Current != NULL);
+    delete mEmptyBuffers;
+
+  do
+    {
+      Current = mDataBuffers->tryDequeue();
+      if (Current != NULL )
+      {
+        delete[] Current->data;
+        delete Current;
+      }
+    }while (Current != NULL);
+    delete mDataBuffers;
+}
+
+uint16_t* ContinuousBufferManager::EmptyBufferGet()
+{
+  ContBuff *Buff;
+  uint16_t *retval;
+
+  Buff = mEmptyBuffers->tryDequeue();
+
+  if (Buff == NULL)
+    {
+      retval = new uint16_t[mSize];
+    }
+  else
+  {
+    retval = Buff->data;
+    delete Buff;
+  }
+  
+
+  return retval;
+}
+
+void ContinuousBufferManager::EmptyBufferPut(uint16_t* Buff)
+{
+  ContBuff *Current = new ContBuff;
+  Current->data = Buff;
+  Current->used = 0;
+  mEmptyBuffers->enqueue(Current);
+}
+
+void ContinuousBufferManager::DataBufferGet(uint16_t **Buff, uint32_t *Used)
+{
+  ContBuff *Current = mDataBuffers->dequeue();
+  *Buff = Current->data;
+  *Used = Current->used;
+  delete Current;
+}
+
+void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used)
+{
+  ContBuff *Current = new ContBuff;
+  Current->data = Buff;
+  Current->used = Used;
+  mDataBuffers->enqueue(Current);
+}
+
+ContinuousAdcWorker::ContinuousAdcWorker(aiousb_device_handle Device, 
+    uint32_t BuffSize, uint32_t BaseBuffCount, uint32_t Context, 
+    adc_cont_callback Callback)
+    : mDevice(Device)
+    , mContext(Context)
+    , mCallback(Callback)
+{
+  mBuffManager = new ContinuousBufferManager(BaseBuffCount, BuffSize);
+  mTerminated = false;
+}
+
+ContinuousAdcWorker::~ContinuousAdcWorker()
+{
+  if (!mTerminated) Terminate();
+  delete mBuffManager;
+}
+
+int ContinuousAdcWorker::Execute()
+{
+  mCaptureThread = new std::thread(&ContinuousAdcWorker::ExecuteCapture, this);
+  mCallbackThread = new std::thread(&ContinuousAdcWorker::ExecuteCallback, this);
+}
+
+void ContinuousAdcWorker::Terminate()
+{
+  mTerminated = true;
+  mCallbackThread->join();
+  mCaptureThread->join();
+}
+
+void ContinuousAdcWorker::ExecuteCapture ()
+{
+  uint32_t bytes_left, data_size, status, control_data;
+  uint16_t *this_buff;
+  uint32_t used;
+
+  if (mDevice->descriptor.b_adc_dio_stream) //bcs_dio in reference code
+    {
+      aiousb_generic_vendor_write(mDevice,
+                                    0xbc,
+                                    0x3,
+                                    0,
+                                    0,
+                                    NULL);
+    }
+  else
+    {
+      control_data = 0x01000007;
+      aiousb_generic_vendor_write(mDevice,
+                                      0xbc,
+                                      0,
+                                      0,
+                                      sizeof(control_data),
+                                      &control_data);
+    }
+
+    while (!mTerminated)
+      {
+        this_buff = mBuffManager->EmptyBufferGet();
+
+        status = aiousb_generic_bulk_in(mDevice,
+                                      0,
+                                      this_buff,
+                                      mBuffManager->SizeGet(),
+                                      (int *)&used);
+
+        if (status)
+        {
+          aiousb_library_err_print("bulk_in fail");
+        }
+        if (used != 0)
+          {
+            mBuffManager->DataBufferPut(this_buff, used);
+          }
+        else
+        {
+          mBuffManager->EmptyBufferPut(this_buff);
+        }
+      }
+
+    if (mDevice->descriptor.b_adc_dio_stream) //bcs_dio in reference code
+    {
+      aiousb_generic_vendor_write(mDevice,
+                                    0xbc,
+                                    0x10,
+                                    0,
+                                    0,
+                                    NULL);
+    }
+  else
+    {
+      control_data = 0x00020002;
+      aiousb_generic_vendor_write(mDevice,
+                                      0xbc,
+                                      0,
+                                      0,
+                                      sizeof(control_data),
+                                      &control_data);
+    }
+
+    bytes_left = 0;
+
+    aiousb_generic_vendor_read(mDevice,
+                          0xbc,
+                          0,
+                          0,
+                          sizeof(bytes_left), &bytes_left);
+
+    bytes_left &= 0xffff;
+
+    if ( bytes_left )
+      {
+        this_buff = mBuffManager->EmptyBufferGet();
+
+        status = aiousb_generic_bulk_in(mDevice,
+                                        0,
+                                        this_buff,
+                                        bytes_left,
+                                        (int *)&used);
+
+        if ((status) || (!used))
+          {
+            mBuffManager->EmptyBufferPut(this_buff);
+          }
+        else
+          {
+            mBuffManager->DataBufferPut(this_buff, used);
+          }
+      }
+}
+
+
+#include <unistd.h>
+void ContinuousAdcWorker::ExecuteCallback ()
+{
+  uint16_t *buff;
+  uint32_t used;
+  while (!mTerminated)
+  {
+    mBuffManager->DataBufferGet(&buff, &used);
+    //TODO: For now Not doing the flags. Need to discuss with other team members
+    //about need.
+    mCallback(buff, used, 0, mContext);
+
+    mBuffManager->EmptyBufferPut(buff);
+  }
+  sleep(1);
+  
+}

@@ -1954,6 +1954,29 @@ int aiousb_get_scan_inner(aiousb_device_handle device, uint8_t *config_buff,
 }
 
 
+double volts_from_counts (aiousb_device_handle device, int counts, int range_code)
+{
+  double v = counts * (1.0 /65536.0);
+
+  if (range_code & 0x1)
+    {
+      v = v * 2 - 1;
+    }
+  if ((range_code & 0x2) == 0)
+    {
+      v = v * 2;
+    }
+  if ((range_code & 0x4) == 0)
+    {
+      v = v * 5;
+    }
+  if (device->descriptor.imm_adc_post_scale != 1)
+    {
+      v = v * (double)device->descriptor.imm_adc_post_scale;
+    }
+  return v;
+}  
+
 int aiousb_get_scan_v(aiousb_device_handle device, double *data)
 {
   int status = 0;
@@ -1996,24 +2019,9 @@ int aiousb_get_scan_v(aiousb_device_handle device, double *data)
               total += ad_buff[i * ( 1 + config_buff[0x13] ) + j];
             }
           range_code = config_buff[channel >> device->descriptor.range_shift];
-          v = total/ config_buff[0x13] * (1.0/65536.0);
-          if (range_code & 0x1)
-            {
-              v = v * 2 - 1;
-            }
-          if ((range_code & 0x2) == 0)
-            {
-              v = v * 2;
-            }
-          if ((range_code & 0x4) == 0)
-            {
-              v = v * 5;
-            }
-          if (device->descriptor.imm_adc_post_scale != 1)
-            {
-              v = v * (double)device->descriptor.imm_adc_post_scale;
-            }
-          data[data_index] = v;
+          data[data_index] = volts_from_counts(device,
+                                    total / config_buff[0x13],
+                                    range_code);
           data_index++;
           i++;
         }
@@ -2022,7 +2030,10 @@ int aiousb_get_scan_v(aiousb_device_handle device, double *data)
     {
       for (channel = start_channel ; channel <= end_channel ; channel++)
         {
-          data[channel] = ad_buff[channel - start_channel];
+          range_code = config_buff[channel >> device->descriptor.range_shift];
+          data[channel] = volts_from_counts(device, 
+                                      ad_buff[channel - start_channel],
+                                      range_code);
         }
     }
 
@@ -2137,54 +2148,63 @@ int aiousb_adc_bulk_continuous_start_inner (aiousb_device_handle device,
   //TODO: Verify board capabilities and buffer size
   //TODO: Make sure threads are in an acceptable state
 
-  //initialize buf worker
-  device->adc_cont_buff_worker_context.adc_cont_acq_worker_context = &device->adc_cont_acq_worker_context;
-  device->adc_cont_buff_worker_context.bytes_per_buff = buff_size;
-  device->adc_cont_buff_worker_context.callback = callback;
-  device->adc_cont_buff_worker_context.callback_context = context;
-  pthread_mutex_init(&device->adc_cont_buff_worker_context.buff_mutex, NULL);
-  sem_init(&device->adc_cont_buff_worker_context.kill_sem, 0, 0);
-  sem_init(&device->adc_cont_buff_worker_context.blank_buf_sem, 0, base_buff_count);
-  sem_init(&device->adc_cont_buff_worker_context.data_buf_sem, 0, 0);
-  device->adc_cont_buff_worker_context.buf_buf = 
-    (adc_continuous_buffer_handle *) malloc(sizeof(adc_continuous_buffer) * base_buff_count);
-  
+  device->ContAdc = new ContinuousAdcWorker(device,
+                        buff_size,
+                        base_buff_count,
+                        context,callback);
+
+  device->ContAdc->Execute();
+  return 0;  
 
 
-  //initialize cont_acq_worker
-  device->adc_cont_acq_worker_context.adc_cont_buff_worker_context = &device->adc_cont_buff_worker_context;
-  pthread_cond_init(&device->adc_cont_acq_worker_context.start_cond, NULL);
-  pthread_mutex_init(&device->adc_cont_acq_worker_context.start_cond_mutex, NULL);
-  device->adc_cont_acq_worker_context.device = device;
-  device->adc_cont_acq_worker_context.pipe_index = 0;
-  if (device->descriptor.b_adc_dio_stream)
-    {
-      device->adc_cont_acq_worker_context.bcs_style = bcs_dio;
-      device->adc_cont_acq_worker_context.b_counter_control = 0;
-      if (hertz == NULL)
-        {
-          hertz = &device->descriptor.root_clock;
-        }
-    }
-  else
-    {
-      device->adc_cont_acq_worker_context.bcs_style = bcs_adc;
-      if (hertz == NULL)
-        {
-          device->adc_cont_acq_worker_context.b_counter_control = 0;
-        }
-      else
-        {
-          device->adc_cont_acq_worker_context.b_counter_control = 1;
-//TODO: CalcHzDivisors
-        }
-    }
+//   //initialize buf worker
+//   device->adc_cont_buff_worker_context.adc_cont_acq_worker_context = &device->adc_cont_acq_worker_context;
+//   device->adc_cont_buff_worker_context.bytes_per_buff = buff_size;
+//   device->adc_cont_buff_worker_context.callback = callback;
+//   device->adc_cont_buff_worker_context.callback_context = context;
+//   pthread_mutex_init(&device->adc_cont_buff_worker_context.buff_mutex, NULL);
+//   sem_init(&device->adc_cont_buff_worker_context.kill_sem, 0, 0);
+//   sem_init(&device->adc_cont_buff_worker_context.blank_buf_sem, 0, base_buff_count);
+//   sem_init(&device->adc_cont_buff_worker_context.data_buf_sem, 0, 0);
+//   device->adc_cont_buff_worker_context.buf_buf =
+//     (adc_continuous_buffer_handle *) malloc(sizeof(adc_continuous_buffer) * base_buff_count);
 
-    pthread_create(&device->adc_cont_acq_worker, NULL, adc_cont_buff_worker_execute, &device->adc_cont_acq_worker_context);
-    pthread_create(&device->adc_cont_buff_worker, NULL, adc_cont_buff_worker_execute, &device->adc_cont_buff_worker_context);
 
-    pthread_join(device->adc_cont_acq_worker, NULL);
-    pthread_join(device->adc_cont_buff_worker, NULL);
+
+//   //initialize cont_acq_worker
+//   device->adc_cont_acq_worker_context.adc_cont_buff_worker_context = &device->adc_cont_buff_worker_context;
+//   pthread_cond_init(&device->adc_cont_acq_worker_context.start_cond, NULL);
+//   pthread_mutex_init(&device->adc_cont_acq_worker_context.start_cond_mutex, NULL);
+//   device->adc_cont_acq_worker_context.device = device;
+//   device->adc_cont_acq_worker_context.pipe_index = 0;
+//   if (device->descriptor.b_adc_dio_stream)
+//     {
+//       device->adc_cont_acq_worker_context.bcs_style = bcs_dio;
+//       device->adc_cont_acq_worker_context.b_counter_control = 0;
+//       if (hertz == NULL)
+//         {
+//           hertz = &device->descriptor.root_clock;
+//         }
+//     }
+//   else
+//     {
+//       device->adc_cont_acq_worker_context.bcs_style = bcs_adc;
+//       if (hertz == NULL)
+//         {
+//           device->adc_cont_acq_worker_context.b_counter_control = 0;
+//         }
+//       else
+//         {
+//           device->adc_cont_acq_worker_context.b_counter_control = 1;
+// //TODO: CalcHzDivisors
+//         }
+//     }
+
+//     pthread_create(&device->adc_cont_acq_worker, NULL, adc_cont_buff_worker_execute, &device->adc_cont_acq_worker_context);
+//     pthread_create(&device->adc_cont_buff_worker, NULL, adc_cont_buff_worker_execute, &device->adc_cont_buff_worker_context);
+
+//     pthread_join(device->adc_cont_acq_worker, NULL);
+//     pthread_join(device->adc_cont_buff_worker, NULL);
 
 }
 
@@ -2200,6 +2220,14 @@ int aiousb_adc_bulk_continuous_start (aiousb_device_handle device,
                                             context,
                                             callback,
                                             NULL);
+}
+
+int aiousb_adc_bulk_continuous_end (aiousb_device_handle device)
+{
+  device->ContAdc->Terminate();
+  delete device->ContAdc;
+  device->ContAdc = NULL;
+  return 0;
 }
 
 int aiousb_set_scan_limits (aiousb_device_handle device, uint32_t start_channel,
@@ -2779,6 +2807,12 @@ int aiousb_adc_bulk_continuous_start (unsigned long device_index,
                 context,
                 callback);
 }
+
+int aiousb_adc_bulk_continuous_end (unsigned long device_index)
+{
+  return aiousb_adc_bulk_continuous_end(aiousb_handle_by_index_private(device_index));
+}
+
 
 int aiousb_adc_get_config(unsigned long device_index, uint8_t *config_buff,
                 uint32_t *config_size)

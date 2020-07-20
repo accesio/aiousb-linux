@@ -1,7 +1,10 @@
 #ifndef ADC_THREADS_H
 #define ADC_THREADS_H
+#include <atomic>
+#include <thread>
 #include <pthread.h>
 #include <semaphore.h>
+#include "safe-queue.h"
 #include "aiousb.h"
 enum bcs_style {bcs_adc, bcs_dio};
 
@@ -66,5 +69,62 @@ struct adc_cont_acq_worker_context
 
 void *adc_cont_buff_worker_execute(void *context);
 void *adc_worker_execute (void *context);
+
+
+class ContinuousBufferManager
+{
+  public:
+    ContinuousBufferManager(int Count, size_t Size);
+    ~ContinuousBufferManager();
+
+    //get or create empty buffer
+    uint16_t* EmptyBufferGet();
+    //store empty buffer
+    void EmptyBufferPut(uint16_t *Buff);
+
+    //get data buffer. wait if there isn't one
+    void DataBufferGet(uint16_t **Buff, uint32_t *Used);
+    //store data buffer
+    void DataBufferPut(uint16_t *Buff, uint32_t Used);
+
+    //get size of buffer
+    size_t SizeGet() {return mSize;};
+
+
+  private:
+    struct ContBuff
+    {
+      uint16_t *data;
+      uint32_t used;
+    };
+    SafeQueue<ContBuff *> *mEmptyBuffers;
+    SafeQueue<ContBuff *> *mDataBuffers;
+    size_t mSize;
+};
+
+class ContinuousAdcWorker
+{
+  public:
+    ContinuousAdcWorker(aiousb_device_handle Device, uint32_t BuffSize,
+            uint32_t BaseBuffCount, uint32_t Context, adc_cont_callback Callback);
+    ~ContinuousAdcWorker();
+
+  int Execute ();
+  void Terminate();
+
+  private:
+    void ExecuteCapture();
+    void ExecuteCallback();
+    std::atomic<bool> mTerminated;
+    std::thread *mCaptureThread;
+    std::thread *mCallbackThread;
+    ContinuousBufferManager *mBuffManager;
+    aiousb_device_handle mDevice;
+    uint32_t mContext;
+    adc_cont_callback mCallback;
+    double mHertz;
+};
+
+
 
 #endif

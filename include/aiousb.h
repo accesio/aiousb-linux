@@ -120,6 +120,8 @@ int aiousb_adc_bulk_continuous_start (aiousb_device_handle device,
                 uint32_t buff_size, uint32_t base_buff_count, uint32_t context,
                 adc_cont_callback callback);
 
+int aiousb_adc_bulk_continuous_end (aiousb_device_handle device);
+
 int aiousb_adc_get_config(aiousb_device_handle device, uint8_t *config_buff, 
                 uint32_t *config_size);
 
@@ -228,6 +230,8 @@ int aiousb_set_scan_limits (unsigned long device_index, uint32_t start_channel,
 int aiousb_adc_bulk_continuous_start (unsigned long device_index,
                 uint32_t buff_size, uint32_t base_buff_count, uint32_t context,
                 adc_cont_callback callback);
+
+int aiousb_adc_bulk_continuous_end (unsigned long device_index);
 
 int aiousb_adc_get_config(unsigned long device_index, uint8_t *config_buff, 
                 uint32_t *config_size);

@@ -28,3 +28,7 @@ target_link_libraries(aiousb-adc-getscanv-test ${CMAKE_BINARY_DIR}/aiousb/libaio
 target_link_libraries(aiousb-adc-getscanv-test m)
 target_link_libraries(aiousb-adc-getscanv-test pthread)
 
+add_executable(aiousb-continuous-acquisition aiousb-continuous-acquisition.cpp)
+target_link_libraries(aiousb-continuous-acquisition ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
+target_link_libraries(aiousb-continuous-acquisition m)
+target_link_libraries(aiousb-continuous-acquisition pthread)
