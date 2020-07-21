@@ -1,14 +1,14 @@
 /*
  * Copyright (c), ACCES I/O Products, Inc.
  * All rights reserved.
- * 
+ *
  * Contributor(s):
  * Zach Perez, zach.perez@accesio.com
- * 
+ *
  * PERMISSION TO USE, COPY, MODIFY, AND/OR DISTRIBUTE THIS SOFTWARE FOR ANY
  * PURPOSE WITH OR WITHOUT FEE IS HEREBY GRANTED, PROVIDED THAT THE ABOVE
  * COPYRIGHT NOTICE AND THIS PERMISSION NOTICE APPEAR IN ALL COPIES.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY ACCES I/O AND CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -117,7 +117,7 @@ struct accesio_usb_device_info {
 //    spinlock_t err_lock;             /* lock for errors */
     struct kref kref;                /* kernel reference object */
 //    struct mutex io_mutex;           /* synchronize I/O with disconnect */
-    
+
 //    bool ctrl_msg;                    /* true if currently sending a urb */
 //    uint32_t device_index;            /* the device index of the dev tree */
     //TODO: Maybe replace this with it's acces_usb_device_descriptor or add the
@@ -159,7 +159,7 @@ static ssize_t accesio_usb_write(struct file* file, const char* user_buffer, siz
 static loff_t accesio_usb_seek(struct file* filp, loff_t off, int origin);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39)
 static int accesio_usb_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg);
-#else 
+#else
 static long accesio_usb_ioctl(struct file* filp, unsigned int cmd, unsigned long arg);
 #endif
 
@@ -318,7 +318,7 @@ typedef struct ram_poke_context {
 //     ACCESIO_VMAP_ALLOC(len)
 //     rc = usb_control_msg(dev->udev,                                                      // usb_device
 //                          usb_rcvctrlpipe(dev->udev, dev->endpoints.control.in.address),  // pipe
-//                          request,                                                        // request 
+//                          request,                                                        // request
 //                          (USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE | USB_RECIP_DEVICE),     // req_type
 //                          value,                                                         // value
 //                          index,                                                         // index
@@ -350,7 +350,7 @@ static int accesio_usb_ctrl_msg(struct accesio_usb_device_info* dev, uint8_t req
     memcpy(dma_capable_buffer, data, len);
     rc = usb_control_msg(dev->udev,                                                      // usb_device
                          usb_sndctrlpipe(dev->udev, 0),                                                              // pipe
-                         request,                                                        // request 
+                         request,                                                        // request
                          (USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE | USB_RECIP_DEVICE),     // req_type
                          value,                                                         // value
                          index,                                                         // index
@@ -509,7 +509,7 @@ static int accessio_parse_and_send_ihex(const uint8_t* sdata, size_t slen, struc
             rc = -EINVAL;
             goto error;
         }
-        
+
         if ((len * 2) + 11 > strnlen(buf, BUF_SZ)) { // record too short
             rc = -ENXIO;
             goto error;
@@ -551,7 +551,7 @@ static int accessio_parse_and_send_ihex(const uint8_t* sdata, size_t slen, struc
         }
     }
     rc = 0;
-    
+
     error:
     kfree(data);
     kfree(buf);
@@ -671,7 +671,7 @@ static void accesio_usb_free_endpoint_info(struct accesio_usb_endpoint* ep)
 //                 }
 //             }
 //             return false;
-        
+
 //         case USB_ENDPOINT_XFER_INT:
 //             if (usb_endpoint_dir_in(epd)) {
 //                 if (int_in && !*int_in) {
@@ -735,9 +735,9 @@ static int accesio_usb_find_endpoints(struct accesio_usb_device_info* dev)
     int i, j;
     struct usb_endpoint_descriptor *epd;
 
-    for (i = 0; i < dev->interface->num_altsetting; i++) 
+    for (i = 0; i < dev->interface->num_altsetting; i++)
     {
-        for (j = 0; j < dev->interface->altsetting[i].desc.bNumEndpoints; j++) 
+        for (j = 0; j < dev->interface->altsetting[i].desc.bNumEndpoints; j++)
         {
             epd = &dev->interface->altsetting[i].endpoint[j].desc;
 
@@ -759,7 +759,7 @@ static int accesio_usb_find_endpoints(struct accesio_usb_device_info* dev)
             }
         }
     }
-    return 0;            
+    return 0;
 }
 
 static char* accesio_usb_get_devnode(struct device* dev, umode_t* mode)
@@ -803,7 +803,7 @@ static int accesio_usb_open(struct inode* inode, struct file* filp)
     minor = iminor(inode);
     interface = usb_find_interface(&accesio_usb_driver, minor);
 
-    if (!interface) 
+    if (!interface)
     {
         aio_driver_err_print("could not find interface for minor %d", minor);
         retval = -ENODEV;
@@ -820,7 +820,7 @@ exit:
     return retval;
 
 
-    
+
     // int tmp = iminor(inode);
     // struct usb_interface* interface = usb_find_interface(&accesio_usb_driver, tmp);
     // if (!interface) {
@@ -1125,7 +1125,7 @@ static ssize_t accesio_usb_write(struct file* filp, const char* user_buffer, siz
 //     #endif
 //     info.kernel_usb_slot_id = ddata->udev->slot_id;
 //     info.kernel_usb_lpm_disable_count = ddata->udev->lpm_disable_count;
-    
+
 //     if (copy_to_user((accesio_usb_info*)arg, &info, sizeof(accesio_usb_info)) != 0) { return -EIO; };
 //     return 0;
 // }
@@ -1258,7 +1258,7 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
 
     aio_driver_dev_print("filling urb");
 
-    usb_fill_bulk_urb(dev->urb, 
+    usb_fill_bulk_urb(dev->urb,
                     dev->udev,
                     pipe,
                     dma_capable_buffer,
@@ -1308,8 +1308,8 @@ static int accesio_usb_ioctl_internal(struct file* filp, unsigned int cmd, unsig
     int status;
     aio_driver_debug_print("enter");
 
-    if (!dev) 
-    { 
+    if (!dev)
+    {
         aio_driver_err_print("dev is NULL");
         status = -ENOSYS;
         goto err_out;
@@ -1334,7 +1334,7 @@ static int accesio_usb_ioctl_internal(struct file* filp, unsigned int cmd, unsig
         case ACCESIO_USB_ABORT_PIPE:
             aio_driver_debug_print("ACCESIO_USB_ABORT_PIPE");
             {
-                //TODO: Should we be tracking whether or not there's a transfer in 
+                //TODO: Should we be tracking whether or not there's a transfer in
                 // flight? Do we care if the USB core doesn't care?
                 status = usb_unlink_urb(dev->urb);
             }
@@ -1343,7 +1343,7 @@ static int accesio_usb_ioctl_internal(struct file* filp, unsigned int cmd, unsig
             aio_driver_err_print("invalid ioctl cmd");
             status = -EINVAL;
             break;
-    
+
     };
 err_out:
     return status;
@@ -1368,7 +1368,7 @@ static loff_t accesio_usb_seek(struct file* filp, loff_t offset, int origin)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39)
     int accesio_usb_ioctl(struct inode* inode, struct file* filp, unsigned int cmd, unsigned long arg)
     { (void*)inode; return accesio_pci_ioctl_internal(filp, cmd, arg); }
-#else 
+#else
     long accesio_usb_ioctl(struct file* filp, unsigned int cmd, unsigned long arg)
     { return accesio_usb_ioctl_internal(filp, cmd, arg); }
 #endif
@@ -1400,7 +1400,7 @@ static int accesio_usb_probe(struct usb_interface* interface, const struct usb_d
 
     for ( i = 0 ; i < NUM_ACCES_USB_DEVICES ; i++)
     {
-        if ((acces_usb_device_table[i].pid_unloaded == dev->product_id) || 
+        if ((acces_usb_device_table[i].pid_unloaded == dev->product_id) ||
             (acces_usb_device_table[i].pid_loaded == dev->product_id))
         {
             dev->acces_usb_device_descriptor = &acces_usb_device_table[i];
@@ -1412,14 +1412,14 @@ static int accesio_usb_probe(struct usb_interface* interface, const struct usb_d
 
     usb_set_intfdata(interface, dev);
     // we can register the device now, as it is ready
-    if (dev->acces_usb_device_descriptor->pid_unloaded == dev->product_id) 
+    if (dev->acces_usb_device_descriptor->pid_unloaded == dev->product_id)
     {
         retval = accesio_usb_load_fw(dev);
         if (retval != 0) {
             goto error;
         }
     }
-    else 
+    else
     {
         accesio_usb_class.name = dev->acces_usb_device_descriptor->name;
         retval = usb_register_dev(interface, &accesio_usb_class);
@@ -1436,7 +1436,7 @@ static int accesio_usb_probe(struct usb_interface* interface, const struct usb_d
 
     }
 //    accesio_usb_print_dev(dev, "registered device ", true);
-    
+
     return 0;
 
     error:
@@ -1507,7 +1507,7 @@ static int __init accesio_usb_init(void)
         id_table[i*2].match_flags = USB_DEVICE_ID_MATCH_DEVICE;
         id_table[i*2].idVendor = ACCESIO_USB_VID;
         id_table[i*2].idProduct = acces_usb_device_table[i].pid_unloaded;
-        
+
         id_table[i*2+1].match_flags = USB_DEVICE_ID_MATCH_DEVICE;
         id_table[i*2+1].idVendor = ACCESIO_USB_VID;
         id_table[i*2+1].idProduct = acces_usb_device_table[i].pid_loaded;

@@ -81,7 +81,7 @@ int main (int *argc, char **argv)
         printf ("fd = %d\n", fd);
 
         if (fd < 0)
-        {       
+        {
                 exit(1);
         }
 
@@ -112,7 +112,7 @@ int main (int *argc, char **argv)
         generic_vendor_write(fd, 0xbe, 0, 0, sizeof(config_block), config_block);
 
         printf("writing start acquiring block command\n");
-        generic_vendor_write(fd, 0xbc, NUM_SAMPLES >> 16, NUM_SAMPLES, sizeof(bcdata), bcdata); 
+        generic_vendor_write(fd, 0xbc, NUM_SAMPLES >> 16, NUM_SAMPLES, sizeof(bcdata), bcdata);
 
 
         printf("writing immediate to device\n");

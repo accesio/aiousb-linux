@@ -16,7 +16,7 @@ aiousb_device_handle device;
 #define LOOP_COUNT 10000
 
 int main (int arg, char **argv)
-{ 
+{
   double voltages[64];
   int status;
   timespec begin, end;

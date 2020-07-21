@@ -1,14 +1,14 @@
 /*
  * Copyright (c), ACCES I/O Products, Inc.
  * All rights reserved.
- * 
+ *
  * Contributor(s):
  * Zach Perez, zach.perez@accesio.com
- * 
+ *
  * PERMISSION TO USE, COPY, MODIFY, AND/OR DISTRIBUTE THIS SOFTWARE FOR ANY
  * PURPOSE WITH OR WITHOUT FEE IS HEREBY GRANTED, PROVIDED THAT THE ABOVE
  * COPYRIGHT NOTICE AND THIS PERMISSION NOTICE APPEAR IN ALL COPIES.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY ACCES I/O AND CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -43,7 +43,7 @@ struct acces_usb_device_descriptor
     int counters;
     unsigned int dio_bytes;
     unsigned int dio_config_bits;
-    unsigned int tristate; 
+    unsigned int tristate;
     int b_get_name;
     int b_set_custom_clocks;
     int b_dio_debounce;

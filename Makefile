@@ -10,7 +10,7 @@ all:
 	$(MAKE) CC=$(CC) -C $(KDIR) M=$(PWD) modules
 #	cp fw/*.hex $(KFWDIR)/
 
-clean: 
+clean:
 	$(MAKE) CC=$(CC) -C $(KDIR) M=$(PWD) clean
 #	modprobe -r accesio_usb
 #	rm -vf $(KDMOD)/accesio_usb.ko $(KDMOD)/extra/accesio_usb.ko

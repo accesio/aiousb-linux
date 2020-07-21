@@ -1975,7 +1975,7 @@ double volts_from_counts (aiousb_device_handle device, int counts, int range_cod
       v = v * (double)device->descriptor.imm_adc_post_scale;
     }
   return v;
-}  
+}
 
 int aiousb_get_scan_v(aiousb_device_handle device, double *data)
 {
@@ -2031,7 +2031,7 @@ int aiousb_get_scan_v(aiousb_device_handle device, double *data)
       for (channel = start_channel ; channel <= end_channel ; channel++)
         {
           range_code = config_buff[channel >> device->descriptor.range_shift];
-          data[channel] = volts_from_counts(device, 
+          data[channel] = volts_from_counts(device,
                                       ad_buff[channel - start_channel],
                                       range_code);
         }
@@ -2154,7 +2154,7 @@ int aiousb_adc_bulk_continuous_start_inner (aiousb_device_handle device,
                         context,callback);
 
   device->ContAdc->Execute();
-  return 0;  
+  return 0;
 
 
 //   //initialize buf worker

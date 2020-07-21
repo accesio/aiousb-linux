@@ -37,7 +37,7 @@ int main (int arg, char **argv)
         memset(dio_bytes, 0xff, sizeof(dio_bytes));
 
         status = aiousb_dio_configure(device, 0, out_mask, dio_bytes);
-        
+
         status = aiousb_dio_write1(device, 0, 0);
         sleep(3);
         status = aiousb_dio_write1(device, 0, 1);

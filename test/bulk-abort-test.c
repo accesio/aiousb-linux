@@ -14,7 +14,7 @@
 void *abort_transfer (void *descriptor)
 {
         int fd = (int) descriptor;
-        
+
         sleep(3);
 
         ioctl(fd, ACCESIO_USB_ABORT_PIPE);
@@ -93,7 +93,7 @@ int main (int *argc, char **argv)
         printf ("fd = %d\n", fd);
 
         if (fd < 0)
-        {       
+        {
                 exit(1);
         }
 
@@ -125,7 +125,7 @@ int main (int *argc, char **argv)
 
         printf("spawning thread\n");
         pthread_create(&abort_thread, NULL, abort_transfer, (void *)fd);
-                
+
         printf("calling bulk in\n");
         generic_bulk_in(fd, 0, counts, sizeof(counts), &transferred);
 

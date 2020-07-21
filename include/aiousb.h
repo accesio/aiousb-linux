@@ -27,15 +27,15 @@ int aiousb_device_index_by_path (const char *fname, unsigned long *device_index)
 
 
 //device handle based functions
-int aiousb_generic_vendor_read(aiousb_device_handle device, 
-            uint8_t request, uint16_t value, uint16_t index, 
+int aiousb_generic_vendor_read(aiousb_device_handle device,
+            uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);
 
 int aiousb_generic_vendor_write(aiousb_device_handle device,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);
 
-int aiousb_generic_bulk_in (aiousb_device_handle device, 
+int aiousb_generic_bulk_in (aiousb_device_handle device,
           unsigned int pipe_index, void *data, int size,
           int *transferred);
 
@@ -81,7 +81,7 @@ int aiousb_dio_stream_set_clocks(aiousb_device_handle device, double *read_hz,
 int aiousb_dio_stream_frame (aiousb_device_handle device, unsigned long frame_points,
                 unsigned short *frame_data, size_t *bytes_transferred);
 
-int aiousb_ctr_8254_mode(aiousb_device_handle device, uint32_t block_index, 
+int aiousb_ctr_8254_mode(aiousb_device_handle device, uint32_t block_index,
                 uint32_t counter_index, uint32_t mode);
 
 int aiousb_ctr_8254_load(aiousb_device_handle device, uint32_t block_index,
@@ -90,7 +90,7 @@ int aiousb_ctr_8254_load(aiousb_device_handle device, uint32_t block_index,
 int aiousb_ctr_8254_mode_load(aiousb_device_handle device, uint32_t block_index,
                 uint32_t counter_index, uint32_t mode, uint16_t load_value);
 
-int aiousb_ctr_8254_start_output_frequency(aiousb_device_handle device, 
+int aiousb_ctr_8254_start_output_frequency(aiousb_device_handle device,
                 uint32_t block_index, double *frequency);
 
 int aiousb_ctr_8254_read(aiousb_device_handle device, uint32_t block_index,
@@ -122,10 +122,10 @@ int aiousb_adc_bulk_continuous_start (aiousb_device_handle device,
 
 int aiousb_adc_bulk_continuous_end (aiousb_device_handle device);
 
-int aiousb_adc_get_config(aiousb_device_handle device, uint8_t *config_buff, 
+int aiousb_adc_get_config(aiousb_device_handle device, uint8_t *config_buff,
                 uint32_t *config_size);
 
-int aiousb_adc_range_all(aiousb_device_handle device, uint8_t *gain_codes, 
+int aiousb_adc_range_all(aiousb_device_handle device, uint8_t *gain_codes,
                 uint32_t *b_differential);
 
 int aiousb_adc_range1(aiousb_device_handle device, uint32_t adc_channel,
@@ -138,15 +138,15 @@ int aiousb_adc_set_config(aiousb_device_handle device, uint8_t *config_buff,
 
 ///Device index based functions
 
-int aiousb_generic_vendor_read(unsigned long device_index, 
-            uint8_t request, uint16_t value, uint16_t index, 
+int aiousb_generic_vendor_read(unsigned long device_index,
+            uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);
 
 int aiousb_generic_vendor_write(unsigned long device_index,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);
 
-int aiousb_generic_bulk_in (unsigned long device_index, 
+int aiousb_generic_bulk_in (unsigned long device_index,
           unsigned int pipe_index, void *data, int size,
           int *transferred);
 
@@ -192,7 +192,7 @@ int aiousb_dio_stream_set_clocks(unsigned long device_index, double *read_hz,
 int aiousb_dio_stream_frame (unsigned long device_index, unsigned long frame_points,
                 unsigned short *frame_data, size_t *bytes_transferred);
 
-int aiousb_ctr_8254_mode(unsigned long device_index, uint32_t block_index, 
+int aiousb_ctr_8254_mode(unsigned long device_index, uint32_t block_index,
                 uint32_t counter_index, uint32_t mode);
 
 int aiousb_ctr_8254_load(unsigned long device_index, uint32_t block_index,
@@ -201,7 +201,7 @@ int aiousb_ctr_8254_load(unsigned long device_index, uint32_t block_index,
 int aiousb_ctr_8254_mode_load(unsigned long device_index, uint32_t block_index,
                 uint32_t counter_index, uint32_t mode, uint16_t load_value);
 
-int aiousb_ctr_8254_start_output_frequency(unsigned long device_index, 
+int aiousb_ctr_8254_start_output_frequency(unsigned long device_index,
                 uint32_t block_index, double *frequency);
 
 int aiousb_ctr_8254_read(unsigned long device_index, uint32_t block_index,
@@ -233,10 +233,10 @@ int aiousb_adc_bulk_continuous_start (unsigned long device_index,
 
 int aiousb_adc_bulk_continuous_end (unsigned long device_index);
 
-int aiousb_adc_get_config(unsigned long device_index, uint8_t *config_buff, 
+int aiousb_adc_get_config(unsigned long device_index, uint8_t *config_buff,
                 uint32_t *config_size);
 
-int aiousb_adc_range_all(unsigned long device_index, uint8_t *gain_codes, 
+int aiousb_adc_range_all(unsigned long device_index, uint8_t *gain_codes,
                 uint32_t *b_differential);
 
 int aiousb_adc_range1(unsigned long device_index, uint32_t adc_channel,

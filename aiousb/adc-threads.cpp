@@ -8,7 +8,7 @@
 ///////////////////adc_worker thread start
 void *adc_worker_execute (void *context)
 {
-  struct adc_worker_context *adc_worker_context = 
+  struct adc_worker_context *adc_worker_context =
                             (struct adc_worker_context *)context;
   uint8_t *ad_buff = NULL;
   uint8_t *current_tar = (uint8_t *)adc_worker_context->tar;
@@ -16,7 +16,7 @@ void *adc_worker_execute (void *context)
   int this_transfer;
   int status;
 
-  uint32_t transfer_length = MAX(adc_worker_min_block, 
+  uint32_t transfer_length = MAX(adc_worker_min_block,
           MIN(adc_worker_context->bytes_left, adc_worker_context->block_size));
 
   ad_buff =(uint8_t *) malloc(transfer_length);
@@ -117,7 +117,7 @@ ERR_XFER:
 
 
 
-struct adc_continuous_buffer * 
+struct adc_continuous_buffer *
 adc_cont_buff_worker_extra_buf (struct adc_cont_buff_worker_context *context)
 {
   struct adc_continuous_buffer *retval = NULL;
@@ -132,7 +132,7 @@ adc_cont_buff_worker_extra_buf (struct adc_cont_buff_worker_context *context)
     }
 
   context->num_buffs++;
-  context->buf_buf = (adc_continuous_buffer_handle *) realloc(context->buf_buf, 
+  context->buf_buf = (adc_continuous_buffer_handle *) realloc(context->buf_buf,
               sizeof (struct adc_continuous_buffer *) * context->num_buffs);
 
   if (context->buf_buf == NULL)
@@ -150,7 +150,7 @@ adc_cont_buff_worker_extra_buf (struct adc_cont_buff_worker_context *context)
 
 }
 
-struct adc_continuous_buffer * 
+struct adc_continuous_buffer *
 adc_cont_buff_worker_get_blank_buff (struct adc_cont_buff_worker_context *context,
                              uint32_t flags)
 {
@@ -162,7 +162,7 @@ adc_cont_buff_worker_get_blank_buff (struct adc_cont_buff_worker_context *contex
       ret_val->flags |= ADC_CONT_CALLBACK_FLAG_INSERTED;
       return ret_val;
     }
-  
+
   pthread_mutex_lock(&context->buff_mutex);
 
   for ( i = 0 ; i < context->num_buffs ; i++)
@@ -187,7 +187,7 @@ adc_cont_buff_worker_get_blank_buff (struct adc_cont_buff_worker_context *contex
 
 }
 
-void adc_cont_buff_worker_put_blank_buff(struct adc_cont_buff_worker_context *context, 
+void adc_cont_buff_worker_put_blank_buff(struct adc_cont_buff_worker_context *context,
                                         struct adc_continuous_buffer *cont_buf)
 {
   pthread_mutex_lock(&context->buff_mutex);
@@ -207,7 +207,7 @@ void adc_cont_buff_worker_put_data_buff(struct adc_cont_buff_worker_context *con
   sem_post(&context->data_buf_sem);
 }
 
-struct adc_continuous_buffer * 
+struct adc_continuous_buffer *
 adc_cont_buff_worker_get_data_buf_or_killed (struct adc_cont_buff_worker_context *context)
 {
   struct adc_continuous_buffer * ret_val = NULL;
@@ -238,7 +238,7 @@ adc_cont_buff_worker_get_data_buf_or_killed (struct adc_cont_buff_worker_context
 
 void *adc_cont_buff_worker_execute(void *context)
 {
-  struct adc_cont_buff_worker_context *this_context = 
+  struct adc_cont_buff_worker_context *this_context =
                             (struct adc_cont_buff_worker_context *)context;
   struct adc_continuous_buffer *this_buff = NULL;
 
@@ -278,12 +278,12 @@ void adc_cont_acq_worker_do_bc_control(aiousb_device_handle device,
 
 void *adc_cont_acq_worker_execute (void *context)
 {
-  struct adc_cont_acq_worker_context *this_context = 
+  struct adc_cont_acq_worker_context *this_context =
                                   (struct adc_cont_acq_worker_context *)context;
 
   uint32_t bytes_left, data_size, status;
   struct adc_continuous_buffer *this_buff;
-  
+
 
   this_context->io_status = 0;
 
@@ -319,7 +319,7 @@ void *adc_cont_acq_worker_execute (void *context)
   pthread_cond_signal(&this_context->start_cond);
   pthread_mutex_unlock(&this_context->start_cond_mutex);
 
-  
+
   while (!__sync_and_and_fetch (&this_context->terminate, 0x1))
   {
     this_buff = adc_cont_buff_worker_get_blank_buff(
@@ -378,7 +378,7 @@ void *adc_cont_acq_worker_execute (void *context)
   else
     {
       adc_cont_acq_worker_do_bc_control(this_context->device, 0, 0x00020002);
-    } 
+    }
 
   bytes_left = 0;
   data_size = sizeof(bytes_left);
@@ -479,7 +479,7 @@ uint16_t* ContinuousBufferManager::EmptyBufferGet()
     retval = Buff->data;
     delete Buff;
   }
-  
+
 
   return retval;
 }
@@ -508,8 +508,8 @@ void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used)
   mDataBuffers->enqueue(Current);
 }
 
-ContinuousAdcWorker::ContinuousAdcWorker(aiousb_device_handle Device, 
-    uint32_t BuffSize, uint32_t BaseBuffCount, uint32_t Context, 
+ContinuousAdcWorker::ContinuousAdcWorker(aiousb_device_handle Device,
+    uint32_t BuffSize, uint32_t BaseBuffCount, uint32_t Context,
     adc_cont_callback Callback)
     : mDevice(Device)
     , mContext(Context)
@@ -655,5 +655,5 @@ void ContinuousAdcWorker::ExecuteCallback ()
     mBuffManager->EmptyBufferPut(buff);
   }
   sleep(1);
-  
+
 }

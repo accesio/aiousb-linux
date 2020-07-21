@@ -31,7 +31,7 @@ void callback (uint16_t *buff, uint32_t buff_size,
   }
 }
 
-  
+
 
 int main (int argc, char **argv)
 {
@@ -109,7 +109,7 @@ status = aiousb_adc_set_oversample(device, OVERSAMPLE);
   aiousb_adc_bulk_continuous_end(device);
 
   sleep(5);
-  
-  
+
+
 
 }
