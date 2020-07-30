@@ -15,10 +15,15 @@ typedef void (*adc_cont_callback) (uint16_t *buff, uint32_t buff_size,
               uint32_t flags, uint32_t context);
 
 //init type stuff
+#ifdef __cplusplus
+extern "C"
+{
 int aiousb_init();
 int aiousb_device_handle_by_path (const char *fname, aiousb_device_handle *device);
 int aiousb_device_handle_by_index(unsigned long device_index, aiousb_device_handle *device);
 int aiousb_device_index_by_path (const char *fname, unsigned long *device_index);
+}
+#endif
 
 //Special device indexes
 #define diNone  0xffffffff
@@ -136,8 +141,12 @@ int aiousb_adc_set_oversample(aiousb_device_handle device, uint8_t oversample);
 int aiousb_adc_set_config(aiousb_device_handle device, uint8_t *config_buff,
               uint32_t *config_size);
 
-///Device index based functions
+int aiousb_abort_pipe(aiousb_device_handle device);
 
+///Device index based functions
+#ifdef __cplusplus
+extern "C"
+{
 int aiousb_generic_vendor_read(unsigned long device_index,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);
@@ -247,11 +256,10 @@ int aiousb_adc_set_oversample(unsigned long device_index, uint8_t oversample);
 int aiousb_adc_set_config(unsigned long device_index, uint8_t *config_buff,
               uint32_t *config_size);
 
-
-//to be sorted?
-
-int aiousb_abort_pipe(aiousb_device_handle device);
 int aiousb_abort_pipe(unsigned long device_index);
 
+}
+#endif
 
 #endif
+
