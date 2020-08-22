@@ -54,6 +54,10 @@ struct aiousb_device
   struct adc_cont_acq_worker_context adc_cont_acq_worker_context;
   char *dev_path;
   ContinuousAdcWorker *ContAdc;
+  //for fast scan
+  uint8_t *config_buff_bak;
+  uint8_t *config_fast;
+  unsigned int config_size;
 };
 
 #endif

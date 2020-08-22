@@ -42,6 +42,25 @@
                     }
                 ]
         },
+        {
+                "name": "(gdb) Launch aiousb-adc-getfastscanv-test",
+                "type": "cppdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/build/test/aiousb-adc-getfastscanv-test",
+                "args": ["/dev/accesio/usb_aio16_16f_3"],
+                "stopAtEntry": false,
+                "cwd": "${workspaceFolder}",
+                "environment": [],
+                "externalConsole": false,
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+        },
                 {
                         "name": "(gdb) Launch aiousb",
                         "type": "cppdbg",

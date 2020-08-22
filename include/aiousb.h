@@ -141,7 +141,15 @@ int aiousb_adc_set_oversample(aiousb_device_handle device, uint8_t oversample);
 int aiousb_adc_set_config(aiousb_device_handle device, uint8_t *config_buff,
               uint32_t *config_size);
 
+int aiousb_adc_init_fast_scan_v(aiousb_device_handle device);
+
+int aiousb_adc_get_fast_scan_v(aiousb_device_handle device, double *data);
+
+int aiousb_adc_reset_fast_scan_v(aiousb_device_handle device);
+
 int aiousb_abort_pipe(aiousb_device_handle device);
+
+
 
 ///Device index based functions
 #ifdef __cplusplus
@@ -255,6 +263,12 @@ int aiousb_adc_set_oversample(unsigned long device_index, uint8_t oversample);
 
 int aiousb_adc_set_config(unsigned long device_index, uint8_t *config_buff,
               uint32_t *config_size);
+
+int aiousb_adc_init_fast_scan_v(unsigned long device_index);
+
+int aiousb_adc_get_fast_scan_v(unsigned long device_index, double *data);
+
+int aiousb_adc_reset_fast_scan_v(unsigned long device_index);
 
 int aiousb_abort_pipe(unsigned long device_index);
 

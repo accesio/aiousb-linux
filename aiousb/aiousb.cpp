@@ -2379,6 +2379,205 @@ int aiousb_adc_set_config(aiousb_device_handle device, uint8_t *config_buff,
   return status;
 }
 
+int aiousb_adc_init_fast_scan_v(aiousb_device_handle device)
+{
+  int status;
+
+  if (!device->descriptor.b_adc_bulk)
+  {
+    return -EBADRQC;
+  }
+
+  if (device->descriptor.config_bytes < 20)
+  {
+    return -EBADRQC;
+  }
+
+  if (device->config_buff_bak == nullptr)
+  {
+    device->config_buff_bak = new uint8_t[device->descriptor.config_bytes];
+  }
+
+  if (device->config_fast == nullptr)
+  {
+    device->config_fast = new uint8_t[device->descriptor.config_bytes];
+  }
+
+  aiousb_adc_get_config(device,
+                    device->config_buff_bak,
+                    &device->config_size);
+
+
+  memcpy(device->config_fast, device->config_buff_bak, 0x10);
+  device->config_fast[0x11] = 0x4;
+  device->config_fast[0x13] = device->config_buff_bak[0x13] ? device->config_buff_bak[0x13] : 1;
+
+  device->config_fast[0x12] = device->config_buff_bak[0x12];
+  if (device->descriptor.config_bytes > 0x14)
+    {
+      device->config_fast[0x14] = device->config_buff_bak[0x14];
+    }
+
+  status = aiousb_adc_set_config(device,
+                          device->config_fast,
+                          &device->config_size);
+
+  if (status)
+    {
+      aiousb_library_err_print("Error setting config");
+      //does it make sense to try and restore?
+      aiousb_adc_set_config(device,
+                    device->config_buff_bak,
+                    &device->config_size);
+      delete[] device->config_buff_bak;
+      delete[] device->config_fast;
+    }
+
+  return status;
+
+}
+
+int aiousb_adc_get_fast_scan_v(aiousb_device_handle device, double *data)
+{
+  int start_channel, end_channel, num_channels;
+  uint16_t *ad_buff = nullptr;
+  uint32_t ad_buff_length = 0;
+  int status;
+  uint32_t bc_data;
+
+  if (!device->descriptor.b_adc_bulk)
+    {
+      return -EBADRQC;
+    }
+
+  if (device->descriptor.config_bytes < 20)
+    {
+      return -EBADRQC;
+    }
+
+  start_channel = device->config_fast[0x12] & 0xf;
+  end_channel = device->config_fast[0x12] >> 4;
+  if (device->descriptor.config_bytes >= 21)
+    {
+      start_channel |= (device->config_fast[20] & 0xf) << 4;
+      end_channel |= device->config_fast[20] & 0xf0;
+    }
+  num_channels = end_channel - start_channel + 1;
+  ad_buff_length = num_channels * (1 + device->config_fast[0x13]);
+
+  ad_buff = new uint16_t[ad_buff_length];
+  bc_data = 0x5;
+
+  //TODO: Think I need a switch statement for adc_bulk, dio_stream, imm_adcs here
+  //adc_bulk
+  {
+    status = aiousb_generic_vendor_write(device,
+                                    0xbc,
+                                    0,
+                                    ad_buff_length,
+                                    sizeof(bc_data),
+                                    &bc_data);
+
+    if (status != sizeof(bc_data))
+      {
+        aiousb_library_err_print("Error setting bc_data");
+        goto err_out;
+      }
+
+    status = aiousb_generic_vendor_write(device, AUR_ADC_IMMEDIATE, 0, 0, 0, NULL);
+
+    if (status)
+      {
+        aiousb_library_err_print("Error sending AUR_ADC_IMMEDIATE");
+        goto err_out;
+      }
+
+    {
+    uint8_t *byte_ptr = (uint8_t *)ad_buff;
+    int transferred = 0;
+    int bytes_remaining = ad_buff_length * sizeof(uint16_t);
+    do
+      {
+        status = aiousb_generic_bulk_in(device, 0, byte_ptr, bytes_remaining, &transferred);
+
+        if (status)
+          {
+            aiousb_library_err_print("error during bulk in");
+            goto err_out;
+          }
+
+        bytes_remaining -= transferred;
+        byte_ptr += transferred;
+        transferred = 0;
+      }while (bytes_remaining > 0);
+    }
+  } //end adc_bulk
+
+
+  {
+    int total, range_code;
+    int i = 0;
+    int j;
+    int channel;
+    int data_index = 0;
+
+    for (channel = start_channel ; channel <= end_channel ; channel++)
+      {
+        total = 0;
+        for (j = 1 ; j <= device->config_fast[0x13] ; j++)
+          {
+            total += ad_buff[i * (1 + device->config_fast[0x13]) + j];
+          }
+          range_code = device->config_fast[channel >> device->descriptor.range_shift];
+          data[data_index] = volts_from_counts(device,
+                            total / device->config_fast[0x13],
+                            range_code);
+          i++;
+          data_index++;
+      }
+  }
+
+err_out:
+  if (ad_buff != nullptr)
+    {
+      delete[] ad_buff;
+    }
+  return status;
+
+}
+
+int aiousb_adc_reset_fast_scan_v(aiousb_device_handle device)
+{
+  int status;
+
+  if (!device->descriptor.b_adc_bulk)
+    {
+      return -EBADRQC;
+    }
+
+  if (device->descriptor.config_bytes < 20)
+    {
+      return -EBADRQC;
+    }
+
+  if (device->config_fast == nullptr)
+    {
+      return -EINVAL;
+    }
+
+  status = aiousb_adc_set_config(device, device->config_buff_bak, &device->config_size);
+
+  if (status)
+    {
+      aiousb_library_err_print("Error setting config status");
+    }
+
+  delete[] device->config_buff_bak;
+  delete[] device->config_fast;
+  device->config_size = 0;
+  return status;
+}
+
 int aiousb_adc_range_all(aiousb_device_handle device, uint8_t *gain_codes,
                 uint32_t *b_differential)
 {
@@ -2857,6 +3056,22 @@ int aiousb_abort_pipe(aiousb_device_handle device)
 {
   return ioctl(device->fd, ACCESIO_USB_ABORT_PIPE);
 }
+
+int aiousb_adc_init_fast_scan_v(unsigned long device_index)
+{
+  aiousb_adc_init_fast_scan_v(aiousb_handle_by_index_private(device_index));
+}
+
+int aiousb_adc_get_fast_scan_v(unsigned long device_index, double *data)
+{
+  aiousb_adc_get_fast_scan_v(aiousb_handle_by_index_private(device_index), data);
+}
+
+int aiousb_adc_reset_fast_scan_v(unsigned long device_index)
+{
+  aiousb_adc_reset_fast_scan_v(aiousb_handle_by_index_private(device_index));
+}
+
 
 int aiousb_abort_pipe(unsigned long device_index)
 {
