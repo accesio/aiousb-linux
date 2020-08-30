@@ -42,3 +42,8 @@ add_executable(hotplug-testing hotplug-testing.cpp)
 target_link_libraries(hotplug-testing ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
 target_link_libraries(hotplug-testing m)
 target_link_libraries(hotplug-testing pthread)
+
+add_executable(aiousb-eeprom-test aiousb-eeprom-test.cpp)
+target_link_libraries(aiousb-eeprom-test ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
+target_link_libraries(aiousb-eeprom-test m)
+target_link_libraries(aiousb-eeprom-test pthread)

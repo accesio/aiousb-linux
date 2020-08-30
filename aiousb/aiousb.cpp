@@ -432,6 +432,58 @@ int aiousb_generic_bulk_out (aiousb_device_handle device, unsigned int pipe_inde
   return status;
 }
 
+int aiousb_custom_eeprom_write(aiousb_device_handle device,
+            uint32_t start_address, uint32_t data_size, void *data)
+{
+  int block_size = 32;
+  int status;
+  uint8_t *write_ptr = (uint8_t *)data;
+  if (start_address > 0xff)
+    {
+      return -EINVAL;
+    }
+  if (data_size > (0x100 - start_address))
+    {
+      return -EINVAL;
+    }
+
+  do
+  {
+    status = aiousb_generic_vendor_write(device,
+                                      0xa2,
+                                      0x1e00 + start_address,
+                                      0,
+                                      data_size > block_size ? block_size : data_size,
+                                      write_ptr);
+    if (status >= 0)
+    {
+      write_ptr += status;
+      start_address += status;
+      data_size -= status;
+    }
+    else
+    {
+      return status;
+    }
+  }while (data_size);
+}
+
+int aiousb_custom_eeprom_read(aiousb_device_handle device,
+            uint32_t start_address, uint32_t data_size, void *data)
+{
+  if (start_address > 0xff)
+    {
+      return -EINVAL;
+    }
+  if (data_size > (0x100 - start_address))
+    {
+      return -EINVAL;
+    }
+
+  return aiousb_generic_vendor_read(device, 0xa2, 0x1e00 + start_address, 0, data_size, data);
+
+}
+
 int aiousb_dio_configure (aiousb_device_handle device, uint8_t b_tristate,
           void *out_mask, void *data)
 {
@@ -2788,6 +2840,24 @@ int aiousb_generic_bulk_out (unsigned long device_index, unsigned int pipe_index
                             data,
                             size,
                             transferred);
+}
+
+int aiousb_custom_eeprom_write(unsigned long device_index,
+            uint32_t start_address, uint32_t data_size, void *data)
+{
+  return aiousb_custom_eeprom_write(aiousb_handle_by_index_private(device_index),
+            start_address,
+            data_size,
+            data);
+}
+
+int aiousb_custom_eeprom_read(unsigned long device_index,
+            uint32_t start_address, uint32_t data_size, void *data)
+{
+  return aiousb_custom_eeprom_read(aiousb_handle_by_index_private(device_index),
+              start_address,
+              data_size,
+              data);
 }
 
 int aiousb_dio_configure (unsigned long device_index, uint8_t b_tristate,
