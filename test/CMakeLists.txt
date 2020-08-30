@@ -37,3 +37,8 @@ add_executable(aiousb-adc-getfastscanv-test aiousb-adc-getfastscanv-test.cpp)
 target_link_libraries(aiousb-adc-getfastscanv-test ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
 target_link_libraries(aiousb-adc-getfastscanv-test m)
 target_link_libraries(aiousb-adc-getfastscanv-test pthread)
+
+add_executable(hotplug-testing hotplug-testing.cpp)
+target_link_libraries(hotplug-testing ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
+target_link_libraries(hotplug-testing m)
+target_link_libraries(hotplug-testing pthread)

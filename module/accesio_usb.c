@@ -773,6 +773,7 @@ static void accesio_usb_delete(struct kref* kobj)
 {
     struct accesio_usb_device_info* dev = container_of(kobj, struct accesio_usb_device_info, kref);
 //    accesio_usb_print_dev(dev, "unregistering device ", false);
+    aio_driver_dev_print("Enter delete");
     if (dev->interface != NULL) {
         usb_set_intfdata(dev->interface, NULL);
         // give back our minor
@@ -1308,9 +1309,9 @@ static int accesio_usb_ioctl_internal(struct file* filp, unsigned int cmd, unsig
     int status;
     aio_driver_debug_print("enter");
 
-    if (!dev)
+    if ((!dev) || (!dev->interface))
     {
-        aio_driver_err_print("dev is NULL");
+        aio_driver_err_print("dev or interface is NULL");
         status = -ENOSYS;
         goto err_out;
     }
@@ -1408,7 +1409,8 @@ static int accesio_usb_probe(struct usb_interface* interface, const struct usb_d
         }
     }
 
-
+    aio_driver_dev_print("devpath = %s", dev->udev->devpath);
+    aio_driver_dev_print("init_name = %s", dev->udev->dev.init_name);
 
     usb_set_intfdata(interface, dev);
     // we can register the device now, as it is ready
