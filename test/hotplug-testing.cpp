@@ -59,9 +59,11 @@ int main(int argc, char **argv)
 
 	if (status != 0)
 	{
-		printf("aiousb_init() failed: %d", status);
+		printf("aiousb_init() failed: %d\n", status);
 		return -1;
 	}
+
+	printf("press enter to continue...\n"); getchar();
 
 	aiousb_device_handle device;
 	if (argc != 2)
@@ -86,6 +88,7 @@ int main(int argc, char **argv)
 	read_serial_num((unsigned long)0);
 
   printf("press enter to continue...\n"); getchar();
+
 
 	return 0;
 }

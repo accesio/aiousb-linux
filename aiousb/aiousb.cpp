@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <dirent.h>
+#include <libudev.h>
 
 
 #include "aiousb.h"
@@ -119,14 +120,128 @@ static const uint8_t CUR_RAM_READ            = 0xA3;
 
 #define AIOUSB_SEM "/aiousb"
 #define AIOUSB_MAX_PATH 269  /*It's usually less than 30. compiler complains if less than 269*/
-#define MAX_DEVICES 8   /*Maybe make this dynamic someday */
+#define MAX_DEVICES 32   /*Maybe make this dynamic someday */
 
 
 static aiousb_device_handle aiousb_devices[MAX_DEVICES];
 static int aiousb_device_count;
 static int aiousb_init_complete;
-static sem_t *sem;
+//static sem_t *sem;
+std::thread hotplug_thread;
+std::atomic<bool> exiting;
 
+#define ACCES_USB_DEV_DIR "/dev/accesio/"
+
+int aiousb_device_open (const char *fname, aiousb_device_handle *device);
+
+void lib_exit( void )
+{
+  exiting = true;
+  hotplug_thread.join();
+}
+
+void scan_devices()
+{
+  //scan the directory for names
+  DIR *dir = opendir(ACCES_USB_DEV_DIR);
+  char fname[AIOUSB_MAX_PATH];
+  struct dirent *entry;
+
+  if (dir == nullptr) return;
+
+  while (entry = readdir(dir))
+    {
+      if (strstr(entry->d_name, "usb"))
+        {
+          bool match = false;
+          sprintf(fname, ACCES_USB_DEV_DIR"%s", entry->d_name);
+          //for each name check if there's already an entry with
+          //that name and a valid file descriptor
+          for (int i = 0; i < aiousb_device_count; i++)
+          {
+            if (!strcmp(fname, aiousb_devices[i]->dev_path))
+              {
+                struct stat fstat;
+                int fstat_status;
+                fstat_status = ::fstat(aiousb_devices[i]->fd, &fstat);
+                if (fstat_status)
+                  {
+                    aiousb_library_err_print("Error during fstat");
+                    continue;
+                  }
+                if (fstat.st_nlink)
+                  {
+                    match = true;
+                    break;
+                  }
+              }
+          }
+          if (!match)
+          {
+            //if no entry exist open device
+            if (aiousb_device_open(fname, &aiousb_devices[aiousb_device_count]))
+              {
+                continue;
+              }
+            aiousb_devices[aiousb_device_count]->dev_path = (char *)malloc(strlen(fname) + 1);
+            strcpy(aiousb_devices[aiousb_device_count]->dev_path, fname);
+            aiousb_device_count++;
+          }
+        }
+    };
+}
+
+void hotplug_monitor (int n)
+{
+  struct udev* udev = udev_new();
+  struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
+  struct timeval timeout;
+  int fd;
+
+  udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL);
+  udev_monitor_enable_receiving(mon);
+
+  fd = udev_monitor_get_fd(mon);
+
+  timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
+
+  while (!exiting)
+    {
+      fd_set fds;
+      int status;
+
+      FD_ZERO(&fds);
+      FD_SET(fd, &fds);
+
+      status = select(fd+1, &fds, NULL, NULL, &timeout);
+      if (status < 0)
+        {
+          aiousb_library_err_print("select returned %d", status);
+          break;
+        }
+      if (FD_ISSET(fd, &fds))
+        {
+        struct udev_device *dev = udev_monitor_receive_device(mon);
+        if (udev == nullptr) continue;
+
+        const char* IdVendor = udev_device_get_sysattr_value(dev, "idVendor");
+        const char* idProduct = udev_device_get_sysattr_value(dev, "idProduct");
+
+        if ((!IdVendor)  || (strcmp(IdVendor, "1605")))
+          {
+            continue;
+          }
+
+        uint16_t pid = strtol(idProduct, NULL, 16);
+
+        for (int i = 0; i < NUM_ACCES_USB_DEVICES;i++)
+          {
+            if (pid == acces_usb_device_table[i].pid_loaded) scan_devices();
+          }
+        }
+    }
+}
 
 int aiousb_device_open (const char *fname, aiousb_device_handle *device)
 {
@@ -240,35 +355,31 @@ int aiousb_init()
       return -EALREADY;
     }
 
-  // sem = sem_open(AIOUSB_SEM, O_CREAT | O_EXCL, 0x644, 0);
+  dir = opendir(ACCES_USB_DEV_DIR);
 
 
-  // if (sem == SEM_FAILED)
-  //   {
-  //     aiousb_library_err_print("Unable to open semaphore (%s)", strerror(errno));
-  //     return -EPERM;
-  //   }
-
-  dir = opendir("/dev/accesio/");
-
-  if (dir == NULL)
-    {
-      aiousb_library_err_print("Unable to open device directory (%s)", strerror(errno));
-      return -EPERM;
-    }
-
-  while (entry = readdir(dir))
-    {
-      if (strstr(entry->d_name, "usb"))
-        {
-          sprintf(fname, "/dev/accesio/%s", entry->d_name);
-          aiousb_device_open(fname, &aiousb_devices[aiousb_device_count]);
-          aiousb_devices[aiousb_device_count]->dev_path = (char *)malloc(strlen(fname) + 1);
-          strcpy(aiousb_devices[aiousb_device_count]->dev_path, fname);
-          aiousb_device_count++;
-        }
-    }
+  if (dir != nullptr)
+  {
+    while (entry = readdir(dir))
+      {
+        if (strstr(entry->d_name, "usb"))
+          {
+            sprintf(fname, ACCES_USB_DEV_DIR"%s", entry->d_name);
+            if (aiousb_device_open(fname, &aiousb_devices[aiousb_device_count]))
+              {
+                continue;
+              }
+            aiousb_devices[aiousb_device_count]->dev_path = (char *)malloc(strlen(fname) + 1);
+            strcpy(aiousb_devices[aiousb_device_count]->dev_path, fname);
+            aiousb_device_count++;
+          }
+      }
+  }
+    exiting = false;
+    atexit(&lib_exit);
+    hotplug_thread = std::thread(&hotplug_monitor, NULL);
     aiousb_init_complete = true;
+    return 0;
 }
 
 void aiousb_device_close(aiousb_device_handle device)
