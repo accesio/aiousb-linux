@@ -47,6 +47,12 @@ int aiousb_generic_bulk_in (aiousb_device_handle device,
 int aiousb_generic_bulk_out (aiousb_device_handle device, unsigned int pipe_index,
            void *data, int size,	int *transferred);
 
+int aiousb_custom_eeprom_write(aiousb_device_handle device,
+            uint32_t start_address, uint32_t data_size, void *data);
+
+int aiousb_custom_eeprom_read(aiousb_device_handle device,
+            uint32_t start_address, uint32_t data_size, void *data);
+
 int aiousb_dio_configure (aiousb_device_handle device, uint8_t b_tristate,
           void *out_mask, void *data);
 
@@ -169,6 +175,12 @@ int aiousb_generic_bulk_in (unsigned long device_index,
 
 int aiousb_generic_bulk_out (unsigned long device_index, unsigned int pipe_index,
            void *data, int size,	int *transferred);
+
+int aiousb_custom_eeprom_write(unsigned long device_index,
+            uint32_t start_address, uint32_t data_size, void *data);
+
+int aiousb_custom_eeprom_read(unsigned long device_index,
+            uint32_t start_address, uint32_t data_size, void *data);
 
 int aiousb_dio_configure (unsigned long device_index, uint8_t b_tristate,
           void *out_mask, void *data);
