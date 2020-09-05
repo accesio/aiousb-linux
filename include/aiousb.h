@@ -12,7 +12,7 @@ typedef struct aiousb_device* aiousb_device_handle;
 #define ADC_CONT_CALLBACK_FLAG_INSERTED 0x4
 
 typedef void (*adc_cont_callback) (uint16_t *buff, uint32_t buff_size,
-              uint32_t flags, uint32_t context);
+              uint32_t flags, void *context);
 
 //init type stuff
 #ifdef __cplusplus
@@ -128,7 +128,7 @@ int aiousb_set_scan_limits (aiousb_device_handle device, uint32_t start_channel,
                 uint32_t end_channel);
 
 int aiousb_adc_bulk_continuous_start (aiousb_device_handle device,
-                uint32_t buff_size, uint32_t base_buff_count, uint32_t context,
+                uint32_t buff_size, uint32_t base_buff_count, void *context,
                 adc_cont_callback callback);
 
 int aiousb_adc_bulk_continuous_end (aiousb_device_handle device);
@@ -257,7 +257,7 @@ int aiousb_set_scan_limits (unsigned long device_index, uint32_t start_channel,
                 uint32_t end_channel);
 
 int aiousb_adc_bulk_continuous_start (unsigned long device_index,
-                uint32_t buff_size, uint32_t base_buff_count, uint32_t context,
+                uint32_t buff_size, uint32_t base_buff_count, void *context,
                 adc_cont_callback callback);
 
 int aiousb_adc_bulk_continuous_end (unsigned long device_index);

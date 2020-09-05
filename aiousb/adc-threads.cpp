@@ -509,7 +509,7 @@ void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used)
 }
 
 ContinuousAdcWorker::ContinuousAdcWorker(aiousb_device_handle Device,
-    uint32_t BuffSize, uint32_t BaseBuffCount, uint32_t Context,
+    uint32_t BuffSize, uint32_t BaseBuffCount, void *Context,
     adc_cont_callback Callback)
     : mDevice(Device)
     , mContext(Context)

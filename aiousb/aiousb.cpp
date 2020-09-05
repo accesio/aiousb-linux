@@ -2302,7 +2302,7 @@ ERR_OUT:
 
 int aiousb_adc_bulk_continuous_start_inner (aiousb_device_handle device,
                     uint32_t buff_size, uint32_t base_buff_count,
-                    uint32_t context, adc_cont_callback callback, double *hertz)
+                    void *context, adc_cont_callback callback, double *hertz)
 {
 
   aiousb_debug_print("Enter");
@@ -2372,7 +2372,7 @@ int aiousb_adc_bulk_continuous_start_inner (aiousb_device_handle device,
 }
 
 int aiousb_adc_bulk_continuous_start (aiousb_device_handle device,
-                uint32_t buff_size, uint32_t base_buff_count, uint32_t context,
+                uint32_t buff_size, uint32_t base_buff_count, void *context,
                 adc_cont_callback callback)
 {
   aiousb_debug_print("Enter");
@@ -3178,7 +3178,7 @@ int aiousb_set_scan_limits (unsigned long device_index, uint32_t start_channel,
 }
 
 int aiousb_adc_bulk_continuous_start (unsigned long device_index,
-                uint32_t buff_size, uint32_t base_buff_count, uint32_t context,
+                uint32_t buff_size, uint32_t base_buff_count, void *context,
                 adc_cont_callback callback)
 {
   return aiousb_adc_bulk_continuous_start (aiousb_handle_by_index_private(device_index),

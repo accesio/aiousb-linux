@@ -45,7 +45,7 @@ struct adc_cont_buff_worker_context
   sem_t data_buf_sem;
   sem_t kill_sem;
   adc_cont_callback callback;
-  uint32_t callback_context;
+  void *callback_context;
   int num_buffs;
   adc_continuous_buffer_handle *buf_buf;
   int next_index_in;
@@ -106,7 +106,7 @@ class ContinuousAdcWorker
 {
   public:
     ContinuousAdcWorker(aiousb_device_handle Device, uint32_t BuffSize,
-            uint32_t BaseBuffCount, uint32_t Context, adc_cont_callback Callback);
+            uint32_t BaseBuffCount, void *Context, adc_cont_callback Callback);
     ~ContinuousAdcWorker();
 
   int Execute ();
@@ -120,7 +120,7 @@ class ContinuousAdcWorker
     std::thread *mCallbackThread;
     ContinuousBufferManager *mBuffManager;
     aiousb_device_handle mDevice;
-    uint32_t mContext;
+    void *mContext;
     adc_cont_callback mCallback;
     double mHertz;
 };

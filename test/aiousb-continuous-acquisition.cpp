@@ -14,7 +14,7 @@
 
 
 void callback (uint16_t *buff, uint32_t buff_size,
-              uint32_t flags, uint32_t context)
+              uint32_t flags, void *context)
 {
   err_printf("buff = %p, buff_size = %u, flags = 0x%x, context = %u\n",
                 buff, buff_size, flags, context);
