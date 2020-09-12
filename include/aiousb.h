@@ -22,6 +22,7 @@ int aiousb_init();
 int aiousb_device_handle_by_path (const char *fname, aiousb_device_handle *device);
 int aiousb_device_handle_by_index(unsigned long device_index, aiousb_device_handle *device);
 int aiousb_device_index_by_path (const char *fname, unsigned long *device_index);
+uint32_t aiousb_get_devices();
 }
 #endif
 
@@ -32,6 +33,11 @@ int aiousb_device_index_by_path (const char *fname, unsigned long *device_index)
 
 
 //device handle based functions
+
+int aiousb_query_device_info(aiousb_device_handle device,
+                              uint32_t *pid, uint32_t *name_size, char *name,
+                              uint32_t *dio_bytes, uint32_t *counters);
+
 int aiousb_generic_vendor_read(aiousb_device_handle device,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);
@@ -161,6 +167,10 @@ int aiousb_abort_pipe(aiousb_device_handle device);
 #ifdef __cplusplus
 extern "C"
 {
+int aiousb_query_device_info(unsigned long device_index,
+                            uint32_t *pid, uint32_t *name_size, char *name,
+                            uint32_t *dio_bytes, uint32_t *counters);
+
 int aiousb_generic_vendor_read(unsigned long device_index,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);

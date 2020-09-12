@@ -133,6 +133,22 @@ std::atomic<bool> exiting;
 #define ACCES_USB_DEV_DIR "/dev/accesio/"
 
 int aiousb_device_open (const char *fname, aiousb_device_handle *device);
+bool aiousb_has_link_private(aiousb_device_handle device)
+{
+  struct stat fstat = {0};
+  int status;
+
+  status = ::fstat(device->fd, &fstat);
+  if (status)
+  {
+    aiousb_library_err_print("Error getting fstat");
+    return false;
+  }
+
+  if (fstat.st_nlink) return true;
+  else return false;
+}
+
 
 void lib_exit( void )
 {
@@ -404,7 +420,7 @@ int aiousb_device_handle_by_path (const char *fname, aiousb_device_handle *devic
 
   for ( i = 0 ; i < aiousb_device_count ; i++)
   {
-    if (!strcmp(fname, aiousb_devices[i]->dev_path))
+    if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_has_link_private(aiousb_devices[i]))
     {
       *device = aiousb_devices[i];
       ret_val = 0;
@@ -443,6 +459,50 @@ int aiousb_device_handle_by_index(unsigned long device_index, aiousb_device_hand
     {
       return 0;
     }
+}
+
+int aiousb_device_index_by_path (const char *fname, unsigned long *device_index)
+{
+  int i;
+  char *real_path = NULL;
+  int ret_val = -1;
+
+  aiousb_debug_print("Enter");
+
+  for ( i = 0 ; i < aiousb_device_count ; i++)
+  {
+    if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_has_link_private(aiousb_devices[i]))
+    {
+      *device_index = i;
+      ret_val = 0;
+      break;
+    }
+  }
+  return ret_val;
+}
+
+uint32_t aiousb_get_devices()
+{
+  uint32_t retval = 0;
+
+  for (int i = 0 ; i < aiousb_device_count ; i++)
+  {
+    if (aiousb_has_link_private(aiousb_devices[i])) retval |= 1 << retval;
+  }
+
+  return retval;
+}
+
+int aiousb_query_device_info(aiousb_device_handle device,
+                              uint32_t *pid, uint32_t *name_size, char *name,
+                              uint32_t *dio_bytes, uint32_t *counters)
+{
+  if (pid != nullptr) *pid = device->descriptor.pid_loaded;
+  //TODO: Make the name copy match description in manaul. ie set name_size to actual length
+  if ((name_size != nullptr) && (name != nullptr)) strncpy(name, device->descriptor.name, *name_size);
+  if (dio_bytes != nullptr) *dio_bytes = device->descriptor.dio_bytes;
+  if (counters != nullptr) *counters = device->descriptor.counters;
+  return 0;
 }
 
 
@@ -2906,6 +2966,18 @@ int aiousb_adc_range1(aiousb_device_handle device, uint32_t adc_channel,
   free(config_buff);
 
   return status;
+}
+
+int aiousb_query_device_info(unsigned long device_index,
+                            uint32_t *pid, uint32_t *name_size, char *name,
+                            uint32_t *dio_bytes, uint32_t *counters)
+{
+  return aiousb_query_device_info(aiousb_handle_by_index_private(device_index),
+                            pid,
+                            name_size,
+                            name,
+                            dio_bytes,
+                            counters);
 }
 
 int aiousb_generic_vendor_read(unsigned long device_index,
