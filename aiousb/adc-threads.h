@@ -90,6 +90,8 @@ class ContinuousBufferManager
     //get size of buffer
     size_t SizeGet() {return mSize;};
 
+    void Stop();
+
 
   private:
     struct ContBuff

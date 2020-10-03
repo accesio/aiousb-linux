@@ -445,7 +445,8 @@ ContinuousBufferManager::~ContinuousBufferManager()
       Current = mEmptyBuffers->tryDequeue();
       if (Current != NULL )
       {
-        delete[] Current->data;
+        //Sometimes this causes a segfault for double free
+        //delete[] Current->data;
         delete Current;
       }
     }while (Current != NULL);
@@ -456,7 +457,8 @@ ContinuousBufferManager::~ContinuousBufferManager()
       Current = mDataBuffers->tryDequeue();
       if (Current != NULL )
       {
-        delete[] Current->data;
+        //Sometimes this causes a segfault for double free
+        //delete[] Current->data;
         delete Current;
       }
     }while (Current != NULL);
@@ -495,9 +497,12 @@ void ContinuousBufferManager::EmptyBufferPut(uint16_t* Buff)
 void ContinuousBufferManager::DataBufferGet(uint16_t **Buff, uint32_t *Used)
 {
   ContBuff *Current = mDataBuffers->dequeue();
-  *Buff = Current->data;
-  *Used = Current->used;
-  delete Current;
+  if (Current != nullptr)
+  {
+    *Buff = Current->data;
+    *Used = Current->used;
+    delete Current;
+  }
 }
 
 void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used)
@@ -506,6 +511,11 @@ void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used)
   Current->data = Buff;
   Current->used = Used;
   mDataBuffers->enqueue(Current);
+}
+
+void ContinuousBufferManager::Stop()
+{
+  mDataBuffers->Stop();
 }
 
 ContinuousAdcWorker::ContinuousAdcWorker(aiousb_device_handle Device,
@@ -534,6 +544,7 @@ int ContinuousAdcWorker::Execute()
 void ContinuousAdcWorker::Terminate()
 {
   mTerminated = true;
+  mBuffManager->Stop();
   mCallbackThread->join();
   mCaptureThread->join();
 }
@@ -643,16 +654,19 @@ void ContinuousAdcWorker::ExecuteCapture ()
 #include <unistd.h>
 void ContinuousAdcWorker::ExecuteCallback ()
 {
-  uint16_t *buff;
+  uint16_t *buff = nullptr;
   uint32_t used;
   while (!mTerminated)
   {
     mBuffManager->DataBufferGet(&buff, &used);
     //TODO: For now Not doing the flags. Need to discuss with other team members
     //about need.
-    mCallback(buff, used, 0, mContext);
+    if (buff != nullptr)
+    {
+      mCallback(buff, used, 0, mContext);
 
-    mBuffManager->EmptyBufferPut(buff);
+      mBuffManager->EmptyBufferPut(buff);
+    }
   }
   sleep(1);
 

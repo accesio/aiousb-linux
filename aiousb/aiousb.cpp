@@ -133,22 +133,6 @@ std::atomic<bool> exiting;
 #define ACCES_USB_DEV_DIR "/dev/accesio/"
 
 int aiousb_device_open (const char *fname, aiousb_device_handle *device);
-bool aiousb_has_link_private(aiousb_device_handle device)
-{
-  struct stat fstat = {0};
-  int status;
-
-  status = ::fstat(device->fd, &fstat);
-  if (status)
-  {
-    aiousb_library_err_print("Error getting fstat");
-    return false;
-  }
-
-  if (fstat.st_nlink) return true;
-  else return false;
-}
-
 
 void lib_exit( void )
 {
@@ -175,21 +159,9 @@ void scan_devices()
           //that name and a valid file descriptor
           for (int i = 0; i < aiousb_device_count; i++)
           {
-            if (!strcmp(fname, aiousb_devices[i]->dev_path))
+            if ((aiousb_devices[i]->fd != -1)  && (!strcmp(fname, aiousb_devices[i]->dev_path)))
               {
-                struct stat fstat;
-                int fstat_status;
-                fstat_status = ::fstat(aiousb_devices[i]->fd, &fstat);
-                if (fstat_status)
-                  {
-                    aiousb_library_err_print("Error during fstat");
-                    continue;
-                  }
-                if (fstat.st_nlink)
-                  {
-                    match = true;
-                    break;
-                  }
+                match = true;
               }
           }
           if (!match)
@@ -207,20 +179,37 @@ void scan_devices()
     };
 }
 
+void check_removed ()
+{
+  for (int i = 0 ; i < aiousb_device_count ; i++)
+  {
+    if (aiousb_devices[i]->fd == -1) continue;
+
+    struct stat fstat;
+    int fstat_status;
+    fstat_status = ::fstat(aiousb_devices[i]->fd, &fstat);
+    if (fstat_status)
+      {
+        aiousb_devices[i]->fd = -1;
+        continue;
+      }
+    if (!fstat.st_nlink)
+      {
+        aiousb_devices[i]->fd = -1;
+      }
+  }
+}
+
 void hotplug_monitor (int n)
 {
   struct udev* udev = udev_new();
   struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
-  struct timeval timeout;
   int fd;
 
   udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL);
   udev_monitor_enable_receiving(mon);
 
   fd = udev_monitor_get_fd(mon);
-
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
 
   while (!exiting)
     {
@@ -230,7 +219,7 @@ void hotplug_monitor (int n)
       FD_ZERO(&fds);
       FD_SET(fd, &fds);
 
-      status = select(fd+1, &fds, NULL, NULL, &timeout);
+      status = select(fd+1, &fds, NULL, NULL, NULL);
       if (status < 0)
         {
           aiousb_library_err_print("select returned %d", status);
@@ -243,6 +232,13 @@ void hotplug_monitor (int n)
 
         const char* IdVendor = udev_device_get_sysattr_value(dev, "idVendor");
         const char* idProduct = udev_device_get_sysattr_value(dev, "idProduct");
+        const char* Action = udev_device_get_action(dev);
+
+        if (!strcmp(Action, "remove"))
+        {
+          check_removed();
+          continue;
+        }
 
         if ((!IdVendor)  || (strcmp(IdVendor, "1605")))
           {
@@ -420,7 +416,7 @@ int aiousb_device_handle_by_path (const char *fname, aiousb_device_handle *devic
 
   for ( i = 0 ; i < aiousb_device_count ; i++)
   {
-    if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_has_link_private(aiousb_devices[i]))
+    if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_devices[i]->fd != -1)
     {
       *device = aiousb_devices[i];
       ret_val = 0;
@@ -471,7 +467,7 @@ int aiousb_device_index_by_path (const char *fname, unsigned long *device_index)
 
   for ( i = 0 ; i < aiousb_device_count ; i++)
   {
-    if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_has_link_private(aiousb_devices[i]))
+    if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_devices[i]->fd != -1)
     {
       *device_index = i;
       ret_val = 0;
@@ -487,7 +483,7 @@ uint32_t aiousb_get_devices()
 
   for (int i = 0 ; i < aiousb_device_count ; i++)
   {
-    if (aiousb_has_link_private(aiousb_devices[i])) retval |= 1 << retval;
+    if (aiousb_devices[i]->fd != -1) retval |= 1 << i;
   }
 
   return retval;

@@ -16,7 +16,7 @@ public:
     : q()
     , m()
     , c()
-  {}
+  { stop = false;}
 
   ~SafeQueue(void)
   {}
@@ -38,6 +38,7 @@ public:
     {
       // release lock as long as the wait and reaquire it afterwards.
       c.wait(lock);
+      if (stop) return nullptr;
     }
     T val = q.front();
     q.pop();
@@ -54,9 +55,16 @@ T tryDequeue(void)
   return val;
 }
 
+void Stop(void)
+{
+  stop=true;
+  c.notify_one();
+}
+
 private:
   std::queue<T> q;
   mutable std::mutex m;
   std::condition_variable c;
+  bool stop;
 };
 #endif
