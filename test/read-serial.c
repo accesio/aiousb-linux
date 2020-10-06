@@ -56,7 +56,7 @@ int generic_vendor_write(int fd, unsigned char request, unsigned short value,
 }
 
 
-int main (int *argc, char **argv)
+int main (int argc, char **argv)
 {
         int fd = open ("/dev/accesio/usb_dio_32i_3", O_RDWR);
         long long serial_num = 0;

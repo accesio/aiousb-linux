@@ -13,7 +13,7 @@ struct adc_worker_context
 {
   aiousb_device_handle device;
   unsigned int pipe_index;
-  int bytes_left;
+  unsigned int bytes_left;
   uint16_t *tar;
   enum bcs_style bcs_style;
   uint32_t block_size;

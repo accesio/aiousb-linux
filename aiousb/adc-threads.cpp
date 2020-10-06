@@ -78,7 +78,7 @@ void *adc_worker_execute (void *context)
 
     pthread_mutex_lock(&adc_worker_context->mutex);
 
-    if (adc_worker_context->bytes_left < this_transfer)
+    if (adc_worker_context->bytes_left < (unsigned int)this_transfer)
       {
         this_transfer = adc_worker_context->bytes_left;
       }
@@ -234,6 +234,7 @@ adc_cont_buff_worker_get_data_buf_or_killed (struct adc_cont_buff_worker_context
             return NULL;
         }
     }while (ret_val == NULL);
+    return ret_val;
 }
 
 void *adc_cont_buff_worker_execute(void *context)
@@ -262,6 +263,7 @@ void *adc_cont_buff_worker_execute(void *context)
         }
 
     }while (!__sync_and_and_fetch(&this_context->terminate, 0x1));
+    return NULL;
 }
 
 ///////////////////adc continuous worker definitions
@@ -420,7 +422,7 @@ void *adc_cont_acq_worker_execute (void *context)
                                 this_buff);
         }
     }
-
+  return 0;
 }
 
 ContinuousBufferManager::ContinuousBufferManager(int Count, size_t Size) : mSize(Size)
@@ -539,6 +541,7 @@ int ContinuousAdcWorker::Execute()
 {
   mCaptureThread = new std::thread(&ContinuousAdcWorker::ExecuteCapture, this);
   mCallbackThread = new std::thread(&ContinuousAdcWorker::ExecuteCallback, this);
+  return 0;
 }
 
 void ContinuousAdcWorker::Terminate()
@@ -551,7 +554,7 @@ void ContinuousAdcWorker::Terminate()
 
 void ContinuousAdcWorker::ExecuteCapture ()
 {
-  uint32_t bytes_left, data_size, status, control_data;
+  uint32_t bytes_left, status, control_data;
   uint16_t *this_buff;
   uint32_t used;
 

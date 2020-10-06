@@ -1328,7 +1328,8 @@ static int accesio_usb_ioctl_internal(struct file* filp, unsigned int cmd, unsig
             aio_driver_debug_print("ACCESIO_USB_AIOUSB_INFO");
             {
                 struct accesio_usb_aiousb_info *info = (struct accesio_usb_aiousb_info *)arg;
-                info->pid = dev->product_id;
+                put_user(dev->product_id, &(info->pid));
+                //info->pid = dev->product_id;
                 status = 0;
             }
             break;

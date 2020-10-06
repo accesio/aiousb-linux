@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     status = aiousb_custom_eeprom_read(device, 0, sizeof(data), data);
     printf("status after read = %d\n", status);
 
-    for (int count = 0; count < sizeof(data) ; count++)
+    for (unsigned int count = 0; count < sizeof(data) ; count++)
     {
       printf("%x, ", data[count]);
       if (count && !(count % 8 )) printf("\n");

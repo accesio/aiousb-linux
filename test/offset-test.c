@@ -22,8 +22,6 @@ struct standard_data
 
 int main ()
 {
-  struct packed_data packed_data;
-  struct standard_data standard_data;
 
   printf("packed_data_offsets:\n\tfirst %ld\n", offsetof(struct packed_data, first));
   printf("\tsecond %ld\n", offsetof(struct packed_data, second));

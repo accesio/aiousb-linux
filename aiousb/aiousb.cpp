@@ -149,7 +149,7 @@ void scan_devices()
 
   if (dir == nullptr) return;
 
-  while (entry = readdir(dir))
+  while ((entry = readdir(dir)))
     {
       if (strstr(entry->d_name, "usb"))
         {
@@ -247,7 +247,7 @@ void hotplug_monitor (int n)
 
         uint16_t pid = strtol(idProduct, NULL, 16);
 
-        for (int i = 0; i < NUM_ACCES_USB_DEVICES;i++)
+        for (unsigned int i = 0; i < NUM_ACCES_USB_DEVICES;i++)
           {
             if (pid == acces_usb_device_table[i].pid_loaded) scan_devices();
           }
@@ -257,7 +257,6 @@ void hotplug_monitor (int n)
 
 int aiousb_device_open (const char *fname, aiousb_device_handle *device)
 {
-  int i;
   int status;
   struct accesio_usb_aiousb_info accesio_usb_aiousb_info;
   struct aiousb_device *ptr;
@@ -282,7 +281,7 @@ int aiousb_device_open (const char *fname, aiousb_device_handle *device)
       return -1;
     }
 
-  for ( i = 0 ; i < NUM_ACCES_USB_DEVICES ; i++)
+  for (unsigned int i = 0 ; i < NUM_ACCES_USB_DEVICES ; i++)
     {
       if (accesio_usb_aiousb_info.pid == acces_usb_device_table[i].pid_loaded)
         {
@@ -358,7 +357,6 @@ int aiousb_init()
   DIR *dir;
   struct dirent *entry;
   char fname[AIOUSB_MAX_PATH];
-  int dev_path_length;
 
   aiousb_debug_print("Enter");
 
@@ -372,7 +370,7 @@ int aiousb_init()
 
   if (dir != nullptr)
   {
-    while (entry = readdir(dir))
+    while ((entry = readdir(dir)))
       {
         if (strstr(entry->d_name, "usb"))
           {
@@ -409,7 +407,6 @@ void aiousb_device_close(aiousb_device_handle device)
 int aiousb_device_handle_by_path (const char *fname, aiousb_device_handle *device)
 {
   int i;
-  char *real_path = NULL;
   int ret_val = -1;
 
   aiousb_debug_print("Enter");
@@ -460,7 +457,6 @@ int aiousb_device_handle_by_index(unsigned long device_index, aiousb_device_hand
 int aiousb_device_index_by_path (const char *fname, unsigned long *device_index)
 {
   int i;
-  char *real_path = NULL;
   int ret_val = -1;
 
   aiousb_debug_print("Enter");
@@ -602,7 +598,7 @@ int aiousb_generic_bulk_out (aiousb_device_handle device, unsigned int pipe_inde
 int aiousb_custom_eeprom_write(aiousb_device_handle device,
             uint32_t start_address, uint32_t data_size, void *data)
 {
-  int block_size = 32;
+  unsigned int block_size = 32;
   int status;
   uint8_t *write_ptr = (uint8_t *)data;
   if (start_address > 0xff)
@@ -633,6 +629,8 @@ int aiousb_custom_eeprom_write(aiousb_device_handle device,
       return status;
     }
   }while (data_size);
+
+  return 0;
 }
 
 int aiousb_custom_eeprom_read(aiousb_device_handle device,
@@ -883,7 +881,7 @@ int aiousb_dio_write_all(aiousb_device_handle device, void *data)
                                   device->descriptor.dio_bytes,
                                   data);
 
-  if (status != device->descriptor.dio_bytes)
+  if (status != (int)device->descriptor.dio_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_write returned: %d dio_bytes: %d",
                               status,
@@ -923,7 +921,7 @@ int aiousb_dio_write_8(aiousb_device_handle device, uint32_t byte_index,
                                       device->descriptor.dio_bytes,
                                       device->last_dio_data);
 
-  if (status != device->descriptor.dio_bytes)
+  if (status != (int)device->descriptor.dio_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_write return %d", status);
     }
@@ -992,7 +990,7 @@ int aiousb_dio_write1(aiousb_device_handle device, uint32_t bit_index,
                                             0,
                                             device->descriptor.dio_bytes,
                                             device->last_dio_data);
-      if (status != device->descriptor.dio_bytes)
+      if (status != (int)device->descriptor.dio_bytes)
         {
           aiousb_library_err_print("status = %d", status);
         }
@@ -1024,7 +1022,7 @@ int aiousb_dio_read_all(aiousb_device_handle device, void *data)
                                       device->descriptor.dio_bytes,
                                       data);
 
-  if (status != device->descriptor.dio_bytes)
+  if (status != (int)device->descriptor.dio_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_read returned %d", status);
     }
@@ -1063,7 +1061,7 @@ int aiousb_dio_read_8(aiousb_device_handle device, uint32_t byte_index,
                                       device->descriptor.dio_bytes,
                                       all_bytes);
 
-  if (status != device->descriptor.dio_bytes)
+  if (status != (int)device->descriptor.dio_bytes)
     {
       aiousb_library_err_print("aiousb_gneric_vendor_read returned %d", status);
     }
@@ -1105,7 +1103,7 @@ int aiousb_dio_read_1(aiousb_device_handle device, uint32_t bit_index,
                                       device->descriptor.dio_bytes,
                                       all_bytes);
 
-  if (status != device->descriptor.dio_bytes)
+  if (status != (int)device->descriptor.dio_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_read returned %d", status);
     }
@@ -1382,7 +1380,7 @@ int map_counter_block(aiousb_device_handle device, uint32_t *block_index,
       *counter_index = *counter_index % 3;
     }
 
-  if ((device->descriptor.counters < *block_index) || (*counter_index > 3))
+  if ((device->descriptor.counters < (int)*block_index) || (*counter_index > 3))
     {
       return -EINVAL;
     }
@@ -1500,7 +1498,7 @@ int aiousb_ctr_8254_start_output_frequency(aiousb_device_handle device,
 {
   int status;
   uint32_t temp, divisor_a, divisor_b;
-  double err, min_err, hz;
+  double err, min_err;
   long double divisor_ab;
 
   aiousb_debug_print("Enter");
@@ -1510,7 +1508,7 @@ int aiousb_ctr_8254_start_output_frequency(aiousb_device_handle device,
       return -EBADRQC;
     }
 
-  if ((device->descriptor.counters <= block_index) || (frequency == NULL))
+  if ((device->descriptor.counters <= (int)block_index) || (frequency == NULL))
     {
       return -EINVAL;
     }
@@ -1796,6 +1794,7 @@ static void *timeout_worker (void *context)
                               0,
                               NULL);
     }
+    return NULL;
 }
 
 //TODO: Needs to be tested
@@ -1818,7 +1817,7 @@ int aiousb_get_scan_inner_adc_bulk(aiousb_device_handle device, uint8_t *config_
   {
     //TODO: DEBUG CODE THAT SHOULD BE REMOVED
     char dbg_string[1024] = {0};
-    for (int i = 0; i < *config_size ; i++)
+    for (unsigned int i = 0; i < *config_size ; i++)
     {
       sprintf(dbg_string + strlen(dbg_string), "0x%x = 0x%x\n", i, config_buff[i]);
     }
@@ -1831,7 +1830,7 @@ int aiousb_get_scan_inner_adc_bulk(aiousb_device_handle device, uint8_t *config_
     {
       //TODO: DEBUG CODE THAT SHOULD BE REMOVED
     char dbg_string[1024] = {0};
-    for (int i = 0; i < *config_size ; i++)
+    for (unsigned int i = 0; i < *config_size ; i++)
     {
       sprintf(dbg_string + strlen(dbg_string), "0x%x = 0x%x\n", i, config_buff[i]);
     }
@@ -1849,7 +1848,7 @@ int aiousb_get_scan_inner_adc_bulk(aiousb_device_handle device, uint8_t *config_
     }
   else
     {
-      config_buff[0x11] = 0x4 | config_buff[0x11] & ~0x3;
+      config_buff[0x11] = 0x4 | (config_buff[0x11] & ~0x3);
     }
 
   *start_channel = config_buff[0x12] & 0xf;
@@ -2007,8 +2006,7 @@ int aiousb_adc_bulk_acquire(aiousb_device_handle device, uint32_t *buff_size,
               &device->adc_worker_context);
 
 
-
-
+  return 0;
 }
 
 static const int ADC_DIO_OVERSAMPLE = 0x40;
@@ -2093,6 +2091,7 @@ int aiousb_get_scan_inner_adc_dio_stream(aiousb_device_handle device, uint8_t *c
       *ad_buff[ADC_DIO_OVERSAMPLE + i] = inter_buff[i].ad1;
     }
     config_buff[0x13] = 0;
+  return 0;
 }
 
 int aiousb_get_scan_inner_imm_adcs (aiousb_device_handle device,
@@ -2103,7 +2102,6 @@ int aiousb_get_scan_inner_imm_adcs (aiousb_device_handle device,
 {
   int status;
   *ad_buff =(uint16_t *) malloc(device->descriptor.imm_dacs);
-  int i;
 
   aiousb_debug_print("Enter");
 
@@ -2114,11 +2112,19 @@ int aiousb_get_scan_inner_imm_adcs (aiousb_device_handle device,
                                     device->descriptor.imm_adcs * 2,
                                     *ad_buff);
 
+  if (status < 0)
+  {
+    aiousb_library_err_print("Error reading from device");
+    return status;
+  }
+
   *start_channel = 0;
   *end_channel = device->descriptor.imm_adcs - 1;
 
   memset(config_buff, 0x02, 16);
   config_buff[0x13] = 0;
+
+  return status;
 
 }
 
@@ -2129,7 +2135,6 @@ int aiousb_get_scan_inner(aiousb_device_handle device, uint8_t *config_buff,
                   uint32_t *ad_buff_length, uint8_t *start_channel,
                   uint8_t *end_channel, uint32_t time_out_ms)
 {
-  int status;
 
   aiousb_debug_print("Enter");
 
@@ -2205,7 +2210,6 @@ int aiousb_get_scan_v(aiousb_device_handle device, double *data)
   uint16_t *ad_buff = NULL;
   uint32_t ad_buff_length = 0;
   int i, j, channel, total, data_index, range_code;
-  double v;
 
   aiousb_debug_print("Enter");
 
@@ -2269,12 +2273,24 @@ ERR_OUT:
 int aiousb_get_channel_v (aiousb_device_handle device, uint32_t channel_index,
                 double *volts)
 {
+  int status;
+
   double data[MAX_CHANNELS_FOR_SCAN];
 
   aiousb_debug_print("Enter");
 
-  aiousb_get_scan_v(device, data);
+  status = aiousb_get_scan_v(device, data);
+
+  if (status)
+  {
+    aiousb_library_err_print("Error getting scan");
+    return status;
+  }
+
   *volts = data[channel_index];
+
+  return status;
+
 }
 
 int aiousb_get_trig_scan_v (aiousb_device_handle device, double *data,
@@ -2476,7 +2492,7 @@ int aiousb_set_scan_limits (aiousb_device_handle device, uint32_t start_channel,
                                   config_buff);
 
 
-  if (status != device->descriptor.config_bytes)
+  if (status != (int)device->descriptor.config_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_read returned %d", status);
     }
@@ -2502,7 +2518,7 @@ int aiousb_set_scan_limits (aiousb_device_handle device, uint32_t start_channel,
                                     device->descriptor.config_bytes,
                                     config_buff);
 
-  if (status != device->descriptor.config_bytes)
+  if (status != (int)device->descriptor.config_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_write returned %d", status);
     }
@@ -2544,7 +2560,7 @@ int aiousb_adc_get_config(aiousb_device_handle device, uint8_t *config_buff,
                                     device->descriptor.config_bytes,
                                     config_buff);
 
-  if (status != device->descriptor.config_bytes)
+  if (status != (int)device->descriptor.config_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_read returned %d", status);
     }
@@ -2586,7 +2602,7 @@ int aiousb_adc_set_config(aiousb_device_handle device, uint8_t *config_buff,
                                   device->descriptor.config_bytes,
                                   config_buff);
 
-  if (status != device->descriptor.config_bytes)
+  if (status != (int)device->descriptor.config_bytes)
     {
       aiousb_library_err_print("aiousb_generic_vendor_read returned %d", status);
     }
@@ -2801,7 +2817,6 @@ int aiousb_adc_range_all(aiousb_device_handle device, uint8_t *gain_codes,
                 uint32_t *b_differential)
 {
   int status;
-  int i;
 
   aiousb_debug_print("Enter");
 
@@ -2816,7 +2831,7 @@ int aiousb_adc_range_all(aiousb_device_handle device, uint8_t *gain_codes,
       return -EINVAL;
     }
 
-  for (i = 0 ; i < device->descriptor.adc_channels ; i++)
+  for (unsigned int i = 0 ; i < device->descriptor.adc_channels ; i++)
     {
       if (gain_codes[i] & 0xf8)
         {
@@ -2839,7 +2854,7 @@ int aiousb_adc_range_all(aiousb_device_handle device, uint8_t *gain_codes,
         aiousb_library_err_print("aiousb_adc_get_config returned %d", status);
       }
 
-      for (i = 0 ; i < device->descriptor.adc_channels ; i++)
+      for (unsigned int i = 0 ; i < device->descriptor.adc_channels ; i++)
         {
           config_buff[i] = gain_codes[i] | (b_differential ? 1 : 0) << 3;
         }
@@ -2861,7 +2876,7 @@ int aiousb_adc_range_all(aiousb_device_handle device, uint8_t *gain_codes,
                                         device->descriptor.config_bytes,
                                         gain_codes);
 
-      if (status != device->descriptor.config_bytes)
+      if (status != (int)device->descriptor.config_bytes)
         {
           aiousb_library_err_print("aiousb_generic_vendor_write returned %d", status);
         }
@@ -2910,6 +2925,8 @@ int aiousb_adc_set_oversample(aiousb_device_handle device, uint8_t oversample)
     }
 
   free(config_buff);
+
+  return status;
 }
 
 
@@ -3151,7 +3168,7 @@ int aiousb_dio_stream_frame (unsigned long device_index, unsigned long frame_poi
 int aiousb_ctr_8254_mode(unsigned long device_index, uint32_t block_index,
                 uint32_t counter_index, uint32_t mode)
 {
-  aiousb_ctr_8254_mode(aiousb_handle_by_index_private(device_index),
+  return aiousb_ctr_8254_mode(aiousb_handle_by_index_private(device_index),
                 block_index,
                 counter_index,
                 mode);
@@ -3308,17 +3325,17 @@ int aiousb_abort_pipe(aiousb_device_handle device)
 
 int aiousb_adc_init_fast_scan_v(unsigned long device_index)
 {
-  aiousb_adc_init_fast_scan_v(aiousb_handle_by_index_private(device_index));
+  return aiousb_adc_init_fast_scan_v(aiousb_handle_by_index_private(device_index));
 }
 
 int aiousb_adc_get_fast_scan_v(unsigned long device_index, double *data)
 {
-  aiousb_adc_get_fast_scan_v(aiousb_handle_by_index_private(device_index), data);
+  return aiousb_adc_get_fast_scan_v(aiousb_handle_by_index_private(device_index), data);
 }
 
 int aiousb_adc_reset_fast_scan_v(unsigned long device_index)
 {
-  aiousb_adc_reset_fast_scan_v(aiousb_handle_by_index_private(device_index));
+  return aiousb_adc_reset_fast_scan_v(aiousb_handle_by_index_private(device_index));
 }
 
 

@@ -49,12 +49,12 @@ int generic_vendor_write(int fd, unsigned char request, unsigned short value,
 }
 
 int generic_bulk_in (int fd, unsigned int pipe_index, void *data, unsigned int size,
-                        unsigned int *transferred)
+                        int *transferred)
 {
         struct accesio_usb_bulk_transfer context = {0};
         int status;
 
-        context.pipe_index;
+        context.pipe_index = pipe_index;
         context.data = data;
         context.size = size;
         context.transferred = transferred;
@@ -69,13 +69,13 @@ int generic_bulk_in (int fd, unsigned int pipe_index, void *data, unsigned int s
 
 #define NUM_SAMPLES 0xb0
 
-int main (int *argc, char **argv)
+int main (int argc, char **argv)
 {
         unsigned char config_block[21];
         int fd = open("/dev/accesio/usb_ai16_64ma_3", O_RDWR);
         unsigned char bcdata[] = {0x05,0x00,0x00,0x00 };
         unsigned short counts[NUM_SAMPLES];
-        unsigned int transferred = 0;
+        int transferred = 0;
         int i;
 
         printf ("fd = %d\n", fd);
