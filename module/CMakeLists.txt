@@ -17,9 +17,16 @@ Set( DRIVER_TARGET_NAME accesio_usb-module )
 Set( DRIVER_BIN_FILE    ${CMAKE_BINARY_DIR}/${DRIVER_FILE} )
 Set( MODULE_SOURCE_DIR  ${PROJECT_SOURCE_DIR}/module )
 
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  set (AIO_CFLAGS "-DAIO_DEBUG=1")
+else()
+  set (AIO_CFLAGS "-DAIO_DEBUG=0")
+endif (CMAKE_BUILD_TYPE MATCHES Debug)
+
 Set( KERNEL_DIR "/lib/modules/${CMAKE_SYSTEM_VERSION}/build" )
 Set( KBUILD_CMD ${CMAKE_MAKE_PROGRAM}
                 -C ${KERNEL_DIR}
+                AIO_CFLAGS=${AIO_CFLAGS}
                 M=${MODULE_SOURCE_DIR}
                 modules )
 

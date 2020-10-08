@@ -5,12 +5,13 @@ KVERSION        := $(shell uname -r)
 KDMOD		:= /lib/modules/$(KVERSION)
 KDIR		:= $(KDMOD)/build
 KFWDIR		:= /lib/firmware
+CFLAGS_accesio_usb.o=$(AIO_CFLAGS)
 
 all:
 	$(MAKE) CC=$(CC) -C $(KDIR) M=$(PWD) modules
 #	cp fw/*.hex $(KFWDIR)/
 
-clean: 
+clean:
 	$(MAKE) CC=$(CC) -C $(KDIR) M=$(PWD) clean
 #	modprobe -r accesio_usb
 #	rm -vf $(KDMOD)/accesio_usb.ko $(KDMOD)/extra/accesio_usb.ko

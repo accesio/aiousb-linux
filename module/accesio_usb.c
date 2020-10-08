@@ -60,10 +60,6 @@
 #define aio_driver_err_print(fmt, ...) \
 				do { printk( "%s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__); } while (0);
 
-#ifndef AIO_DEBUG
-#define AIO_DEBUG 1
-#endif
-
 #define aio_driver_debug_print(fmt, ...) \
 				do { if (AIO_DEBUG) printk ("%s:%d:%s(): " fmt "\n" , __FILE__, \
 																__LINE__, __func__, ##__VA_ARGS__); } while (0)
