@@ -129,6 +129,7 @@ static int aiousb_init_complete;
 //static sem_t *sem;
 std::thread hotplug_thread;
 std::atomic<bool> exiting;
+int pipe_fds[2];
 
 #define ACCES_USB_DEV_DIR "/dev/accesio/"
 
@@ -137,6 +138,7 @@ int aiousb_device_open (const char *fname, aiousb_device_handle *device);
 void lib_exit( void )
 {
   exiting = true;
+  write(pipe_fds[1], "exit", strlen("exit"));
   hotplug_thread.join();
 }
 
@@ -211,15 +213,17 @@ void hotplug_monitor (int n)
 
   fd = udev_monitor_get_fd(mon);
 
+  fd_set fds;
+  int status;
+
+  FD_ZERO(&fds);
+  FD_SET(fd, &fds);
+  FD_SET(pipe_fds[0], &fds);
+
   while (!exiting)
     {
-      fd_set fds;
-      int status;
 
-      FD_ZERO(&fds);
-      FD_SET(fd, &fds);
-
-      status = select(fd+1, &fds, NULL, NULL, NULL);
+      status = select(FD_SETSIZE, &fds, NULL, NULL, NULL);
       if (status < 0)
         {
           aiousb_library_err_print("select returned %d", status);
@@ -385,9 +389,16 @@ int aiousb_init()
           }
       }
   }
-    exiting = false;
-    atexit(&lib_exit);
-    hotplug_thread = std::thread(&hotplug_monitor, NULL);
+    if(pipe(pipe_fds))
+    {
+      aiousb_library_err_print("Error creating pipe. Not starting hotplug monitor");
+    }
+    else
+    {
+      exiting = false;
+      atexit(&lib_exit);
+      hotplug_thread = std::thread(&hotplug_monitor, NULL);
+    }
     aiousb_init_complete = true;
     return 0;
 }
