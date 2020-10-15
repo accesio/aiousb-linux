@@ -14,7 +14,7 @@ Set( MODULE_SOURCE_FILES    accesio_usb.c )
 
 Set( DRIVER_FILE        accesio_usb.ko )
 Set( DRIVER_TARGET_NAME accesio_usb-module )
-Set( DRIVER_BIN_FILE    ${CMAKE_BINARY_DIR}/${DRIVER_FILE} )
+Set( DRIVER_BIN_FILE    ${PROJECT_BINARY_DIR}/${DRIVER_FILE} )
 Set( MODULE_SOURCE_DIR  ${PROJECT_SOURCE_DIR}/module )
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -33,7 +33,7 @@ Set( KBUILD_CMD ${CMAKE_MAKE_PROGRAM}
 Add_Custom_Command( OUTPUT  ${DRIVER_BIN_FILE}
                             ${MODULE_OUTPUT_FILES}
                     COMMAND ${KBUILD_CMD}
-                    COMMAND cp -f ${DRIVER_FILE} ${DRIVER_BIN_FILE}
+                    COMMAND cp -f ${DRIVER_FILE} ${PROJECT_BINARY_DIR}/module/${DRIVER_FILE}
                     WORKING_DIRECTORY ${MODULE_SOURCE_DIR}
                     DEPENDS ${MODULE_SOURCE_FILES} VERBATIM )
 
