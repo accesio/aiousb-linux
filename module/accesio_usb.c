@@ -46,7 +46,7 @@
 #include <linux/version.h>
 #include <linux/firmware.h>
 
-#include "ids.h"
+#include "accesio_usb_ids.h"
 //#include "module/declarations.h"
 //#include "module/types.h"
 //#include "module/driver.h"

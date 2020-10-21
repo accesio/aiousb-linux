@@ -14,3 +14,7 @@ ADD_CUSTOM_COMMAND(TARGET aiousb_shared POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E rename
                     $<TARGET_FILE:aiousb_shared>
                     libaiousb.so)
+
+set (LIBRARY_FILES ${CMAKE_CURRENT_BINARY_DIR}/libaiousb.so ${CMAKE_CURRENT_BINARY_DIR}/libaiousb.a)
+
+install (FILES ${LIBRARY_FILES} TYPE LIB)

@@ -1,7 +1,7 @@
 #ifndef AIOUSB_PRIVATE_H
 #define AIOUSB_PRIVATE_H
 #include <stdio.h>
-#include "ids.h"
+#include "accesio_usb_ids.h"
 #include "adc-threads.h"
 
 #define aiousb_library_err_print(fmt, ...) \
