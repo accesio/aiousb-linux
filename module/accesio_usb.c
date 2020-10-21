@@ -424,10 +424,10 @@ static int accessio_parse_and_send_ihex(const uint8_t* sdata, size_t slen, struc
      * allows segments of up to 64 KBytes (more than a loader could handle).
      */
     for (;;) {
-        size_t len = 0;
-        size_t idx = 0;
-        size_t off = 0;
-        size_t type = 0;
+        unsigned long len = 0;
+        unsigned long idx = 0;
+        unsigned long off = 0;
+        unsigned long type = 0;
         char* cp = NULL;
         char tmp = 0;
         memset(buf, 0, BUF_SZ);
@@ -1163,6 +1163,8 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
     struct accesio_usb_control_transfer *context = (struct accesio_usb_control_transfer *) arg;
     int status = 0;
     void *dma_capable_buffer = NULL; //TODO: Maybe put in device structure to avoid allocation every transfer
+    int bytes_remaining = 0;
+    unsigned int pipe;
 
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
@@ -1177,8 +1179,13 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
 
     aio_driver_dev_print("passed access_ok");
 
-    dma_capable_buffer = kmalloc(context->size, GFP_KERNEL);
-    copy_from_user(dma_capable_buffer, context->data, context->size);
+    dma_capable_buffer = kmalloc(context->size, GFP_DMA);
+    bytes_remaining = copy_from_user(dma_capable_buffer, context->data, context->size);
+
+    if (bytes_remaining)
+    {
+        aio_driver_err_print("copy_from_user returned %d\n", bytes_remaining);
+    }
 
     // {
     //     uint8_t *temp = (char *) dma_capable_buffer;
@@ -1187,9 +1194,17 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
 
     aio_driver_dev_print("Calling contrl_msg");
 
+    if (context->read)
+    {
+        pipe = usb_rcvctrlpipe(dev->udev, 0);
+    }
+    else
+    {
+        pipe = usb_sndctrlpipe(dev->udev, 0);
+    }
 
     status = usb_control_msg(dev->udev,
-                              usb_sndctrlpipe(dev->udev, 0),
+                              pipe,
                               context->request,
                               (context->read ? USB_DIR_IN : USB_DIR_OUT) | USB_TYPE_VENDOR,
                               context->value,
@@ -1197,15 +1212,19 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
                               dma_capable_buffer,
                               context->size,
                               1000);
+    //if (status < 0)
+    {
+        aio_driver_err_print("usb_ctrol_msg returned %d", status);
+    }
 
     if (context->read)
     {
-        copy_to_user(context->data, dma_capable_buffer, context->size);
-    }
+        bytes_remaining = copy_to_user(context->data, dma_capable_buffer, context->size);
 
-    if (status < 0)
-    {
-        aio_driver_err_print("usb_ctrol_msg returned %d", status);
+            if (bytes_remaining)
+            {
+                aio_driver_err_print("copy_to_user returned %d\n", bytes_remaining);
+            }
     }
 
     return status;

@@ -27,7 +27,7 @@ int generic_vendor_read(int fd, unsigned char request, unsigned short value,
 
         if (status)
         {
-                printf("ioctl returned %d\n", status);
+                printf("%s: ioctl returned %d\n", __FUNCTION__, status);
         }
         return status;
 }
@@ -49,7 +49,7 @@ int generic_vendor_write(int fd, unsigned char request, unsigned short value,
 
         if (status)
         {
-                printf("ioctl returned %d\n", status);
+                printf("%s: ioctl returned %d\n", __FUNCTION__, status);
         }
 
         return status;
@@ -58,7 +58,7 @@ int generic_vendor_write(int fd, unsigned char request, unsigned short value,
 
 int main (int argc, char **argv)
 {
-        int fd = open ("/dev/accesio/usb_dio_32i_3", O_RDWR);
+        int fd = open (argv[1], O_RDWR);
         long long serial_num = 0;
         unsigned long size = sizeof(serial_num);
         int status;
