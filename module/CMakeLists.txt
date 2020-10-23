@@ -41,4 +41,6 @@ Add_Custom_Target ( ${DRIVER_TARGET_NAME}
                     ALL
                     DEPENDS ${DRIVER_BIN_FILE} )
 
-install (CODE "execute_process(COMMAND install.sh)")
+set (KBUILD_INSTALL_CMD ${KBUILD_CMD} modules_install)
+
+install (CODE "execute_process(COMMAND ${KBUILD_INSTALL_CMD})")

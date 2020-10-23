@@ -19,6 +19,6 @@ clean:
 
 install: all
 	$(MAKE) CC=$(CC) -C $(KDIR) M=$(PWD) modules_install
-	cp accesio_usb.ko $(KDMOD)
+#	cp accesio_usb.ko $(KDMOD)
 	depmod -a
-	modprobe accesio_usb
+#	modprobe accesio_usb
