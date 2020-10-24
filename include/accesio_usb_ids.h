@@ -3341,6 +3341,9 @@ static const struct acces_usb_device_descriptor acces_usb_device_table[] =
 #define ACCESIO_USB_VID 0x1605
 
 
+//TODO: Implement a decent way of refusing to run when acces_usb_device_table and
+// acces_usb_id_table fall out of sync. The order doesn't matter, but the number
+// of entries does
 #ifdef __KERNEL__
 
 static struct usb_device_id acces_usb_id_table[] =
@@ -3575,7 +3578,11 @@ static struct usb_device_id acces_usb_id_table[] =
     { .match_flags = USB_DEVICE_ID_MATCH_DEVICE, .idVendor = ACCESIO_USB_VID, .idProduct = 0x4002},
     { .match_flags = USB_DEVICE_ID_MATCH_DEVICE, .idVendor = ACCESIO_USB_VID, .idProduct = 0xC003},
     { .match_flags = USB_DEVICE_ID_MATCH_DEVICE, .idVendor = ACCESIO_USB_VID, .idProduct = 0x4003},
+    {0},
 };
+
+#define NUM_ACCES_ID_ENTRIES sizeof(acces_usb_id_table)/sizeof(acces_usb_id_table[0]) - 1
+
 
 #endif //__KERNEL__
 
