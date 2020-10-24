@@ -39,7 +39,6 @@
 #include <linux/module.h>
 #include <linux/kref.h>
 #include <linux/uaccess.h>
-#include <linux/usb.h>
 #include <linux/mutex.h>
 #include <linux/completion.h>
 
