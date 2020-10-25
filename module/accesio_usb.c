@@ -39,7 +39,6 @@
 #include <linux/module.h>
 #include <linux/kref.h>
 #include <linux/uaccess.h>
-#include <linux/usb.h>
 #include <linux/mutex.h>
 #include <linux/completion.h>
 
@@ -56,6 +55,10 @@
 #define ACCESIO_USB_MINOR	192
 
 #define ACCESIO_USB_ANCHOR_TIMEOUT 1000
+
+#ifndef AIO_DEBUG
+#define AIO_DEBUG 0
+#endif
 
 #define aio_driver_err_print(fmt, ...) \
 				do { printk( "%s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__); } while (0);
@@ -161,7 +164,7 @@ static long accesio_usb_ioctl(struct file* filp, unsigned int cmd, unsigned long
 
 static struct usb_driver accesio_usb_driver = {
     .name = DRIVER_NAME,
-    .id_table = NULL,
+    .id_table = acces_usb_id_table,
     .probe = accesio_usb_probe,
     .disconnect = accesio_usb_disconnect,
 #if defined(CONFIG_PM) || defined(ACCESIO_USB_AUTOSUSPEND)
@@ -442,7 +445,8 @@ static int accessio_parse_and_send_ihex(const uint8_t* sdata, size_t slen, struc
                 break;
             }
             if (buf[len] == '\0') {
-                printk(KERN_INFO KBUILD_MODNAME ": EOF w/o EOF record found in FW @ pos = %zu with len = %zu.\n", pos, len);
+                aio_driver_err_print("EOF w/o EOF record found in FW @ pos = %zu with len = %lu.\n", pos, len);
+                //printk(KERN_INFO KBUILD_MODNAME ": EOF w/o EOF record found in FW @ pos = %zu with len = %zu.\n", pos, len);
                 rc = -EFAULT;
                 goto error;
             }
@@ -1244,6 +1248,7 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
     void *dma_capable_buffer = NULL; //TODO: Maybe put in device structure to avoid allocation every transfer
     unsigned int endpoint;
     unsigned int pipe;
+    int bytes_remaining;
 
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
@@ -1259,7 +1264,12 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
     aio_driver_dev_print("passed access_ok");
 
     dma_capable_buffer = usb_alloc_coherent (dev->udev, context->size, GFP_KERNEL, &dev->urb->transfer_dma);
-    copy_from_user(dma_capable_buffer, context->data, context->size);
+    bytes_remaining = copy_from_user(dma_capable_buffer, context->data, context->size);
+
+    if ( 0 != bytes_remaining )
+    {
+        aio_driver_err_print("copy_from_user returned %d", bytes_remaining);
+    }
 
     if (context->read)
     {
@@ -1301,7 +1311,11 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
     if (context->read && !status )
     {
         aio_driver_dev_print("Copying data to user. transferred = %d", dev->urb->actual_length);
-        copy_to_user(context->data, dma_capable_buffer, dev->urb->actual_length);
+        bytes_remaining = copy_to_user(context->data, dma_capable_buffer, dev->urb->actual_length);
+        if ( 0 != bytes_remaining )
+        {
+            aio_driver_err_print("copy_to_user returned %d", bytes_remaining);
+        }
         put_user(dev->urb->actual_length, context->transferred);
     }
 
@@ -1514,24 +1528,13 @@ static int accesio_usb_post_reset(struct usb_interface* intf)
 
 static int __init accesio_usb_init(void)
 {
-    struct usb_device_id *id_table = NULL;
-    int i = 0;
     int ret;
 
-    id_table = kmalloc(sizeof(struct usb_device_id) * NUM_ACCES_USB_DEVICES * 2, GFP_KERNEL);
-
-    for (i=0; i < NUM_ACCES_USB_DEVICES ; i++)
+    if ((NUM_ACCES_ID_ENTRIES) != (NUM_ACCES_USB_DEVICES * 2))
     {
-        id_table[i*2].match_flags = USB_DEVICE_ID_MATCH_DEVICE;
-        id_table[i*2].idVendor = ACCESIO_USB_VID;
-        id_table[i*2].idProduct = acces_usb_device_table[i].pid_unloaded;
-
-        id_table[i*2+1].match_flags = USB_DEVICE_ID_MATCH_DEVICE;
-        id_table[i*2+1].idVendor = ACCESIO_USB_VID;
-        id_table[i*2+1].idProduct = acces_usb_device_table[i].pid_loaded;
+        aio_driver_err_print("DRIVER REFUSING TO LOAD: acces_usb_device_table and acces_usb_id_table do not appear to be in sync");
+        return -1;
     }
-
-    accesio_usb_driver.id_table = id_table;
 
     ret = usb_register(&accesio_usb_driver);
     // NOTE: the current Linux USB serial driver for the FX chips works
@@ -1549,8 +1552,6 @@ static void __exit accesio_usb_exit(void)
 {
     accesio_major_num = 0;
     usb_deregister(&accesio_usb_driver);
-    kfree(accesio_usb_driver.id_table);
-    accesio_usb_driver.id_table = NULL;
     printk("ACCES USB driver unloaded\n");
 }
 
@@ -1561,3 +1562,4 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_VERSION(DRIVER_VERSION);
 MODULE_LICENSE(DRIVER_LICENSE);
+MODULE_DEVICE_TABLE (usb, acces_usb_id_table);
