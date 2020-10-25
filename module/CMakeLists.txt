@@ -42,5 +42,7 @@ Add_Custom_Target ( ${DRIVER_TARGET_NAME}
                     DEPENDS ${DRIVER_BIN_FILE} )
 
 set (KBUILD_INSTALL_CMD ${KBUILD_CMD} modules_install)
+set (DEPMOD depmod -a)
 
-install (CODE "execute_process(COMMAND ${KBUILD_INSTALL_CMD})")
+install (CODE "execute_process(COMMAND ${KBUILD_INSTALL_CMD})"
+         CODE "execute_process(COMMAND ${DEPMOD})")
