@@ -1216,7 +1216,7 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
                               dma_capable_buffer,
                               context->size,
                               1000);
-    //if (status < 0)
+    if (status < 0)
     {
         aio_driver_err_print("usb_ctrol_msg returned %d", status);
     }
