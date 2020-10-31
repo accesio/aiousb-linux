@@ -957,12 +957,28 @@ static int accesio_usb_post_reset(struct usb_interface* intf)
 static int __init accesio_usb_init(void)
 {
     int ret;
+    int i;
 
     if ((NUM_ACCES_ID_ENTRIES) != (NUM_ACCES_USB_DEVICES * 2))
     {
         aio_driver_err_print("DRIVER REFUSING TO LOAD: acces_usb_device_table and acces_usb_id_table do not appear to be in sync");
         return -1;
     }
+
+    for (i = 0 ; i < NUM_ACCES_USB_DEVICES ; i++)
+    {
+        if (acces_usb_device_table[i].pid_unloaded != acces_usb_id_table[i * 2].idProduct)
+        {
+            aio_driver_err_print("DRIVER REFUSING TO LOAD: pid_unloaded mismatch i = %d", i);
+            return -1;
+        }
+        if (acces_usb_device_table[i].pid_loaded != acces_usb_id_table[i * 2 + 1].idProduct)
+        {
+            aio_driver_err_print("DRIVER REFUSING TO LOAD: pid_loaded mismatch i = %d", i);
+            return -1;
+        }
+    }
+
 
     ret = usb_register(&accesio_usb_driver);
     // NOTE: the current Linux USB serial driver for the FX chips works
