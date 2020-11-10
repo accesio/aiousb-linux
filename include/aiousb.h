@@ -18,11 +18,13 @@ typedef void (*adc_cont_callback) (uint16_t *buff, uint32_t buff_size,
 #ifdef __cplusplus
 extern "C"
 {
+#endif
 int aiousb_init();
 int aiousb_device_handle_by_path (const char *fname, aiousb_device_handle *device);
 int aiousb_device_handle_by_index(unsigned long device_index, aiousb_device_handle *device);
 int aiousb_device_index_by_path (const char *fname, unsigned long *device_index);
 uint32_t aiousb_get_devices();
+#ifdef __cplusplus
 }
 #endif
 
@@ -167,6 +169,7 @@ int aiousb_abort_pipe(aiousb_device_handle device);
 #ifdef __cplusplus
 extern "C"
 {
+#endif
 int aiousb_query_device_info(unsigned long device_index,
                             uint32_t *pid, uint32_t *name_size, char *name,
                             uint32_t *dio_bytes, uint32_t *counters);
@@ -293,7 +296,7 @@ int aiousb_adc_get_fast_scan_v(unsigned long device_index, double *data);
 int aiousb_adc_reset_fast_scan_v(unsigned long device_index);
 
 int aiousb_abort_pipe(unsigned long device_index);
-
+#ifdef __cplusplus
 }
 #endif
 
