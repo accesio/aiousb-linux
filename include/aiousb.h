@@ -166,9 +166,15 @@ int ADC_GetFastScanV(aiousb_device_handle device, double *data);
 
 int ADC_ResetFastScanV(aiousb_device_handle device);
 
+
+int DAC_SetBoardRange (aiousb_device_handle device, uint32_t range_code);
+
+int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts);
+
 int AbortPipe(aiousb_device_handle device);
 
 #endif
+
 
 ///Device index based functions
 #ifdef __cplusplus
@@ -300,6 +306,11 @@ int ADC_InitFastScanV(unsigned long device_index);
 int ADC_GetFastScanV(unsigned long device_index, double *data);
 
 int ADC_ResetFastScanV(unsigned long device_index);
+
+
+int DAC_SetBoardRange (unsigned long device_index, uint32_t range_code);
+
+int DAC_Direct(unsigned long device_index, uint32_t channel, uint16_t counts);
 
 int AbortPipe(unsigned long device_index);
 

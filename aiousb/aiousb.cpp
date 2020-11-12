@@ -118,6 +118,8 @@ static const uint8_t AUR_DEBUG_FLASH_ERASE   = 0xFC;
 //Cypress FX2 vendor requests.
 static const uint8_t CUR_RAM_READ            = 0xA3;
 
+static const double dac_dio_stream_imm_hz = 1024*1024;
+
 #define AIOUSB_SEM "/aiousb"
 #define AIOUSB_MAX_PATH 269  /*It's usually less than 30. compiler complains if less than 269*/
 #define MAX_DEVICES 32   /*Maybe make this dynamic someday */
@@ -2987,6 +2989,106 @@ int ADC_Range1(aiousb_device_handle device, uint32_t adc_channel,
 
   return status;
 }
+
+int DAC_SetBoardRange (aiousb_device_handle device, uint32_t range_code)
+{
+  uint8_t config_data[2] = {0};
+  uint32_t data_size = 0;
+  uint16_t dac_data;
+  int status = 0;
+
+  aiousb_debug_print("Enter");
+
+  if (device->descriptor.b_dac_dio_stream)
+    {
+      data_size = 2;
+      status = GenericVendorRead(device, 0xb7, 0, 0, data_size, config_data);
+
+      if (status)
+        {
+          aiousb_library_err_print("status = %d", status);
+          return status;
+        }
+
+      if (config_data[0] >= 2)
+        {
+          if (config_data[1] != 0)
+            {
+              dac_data = 0x8000; //Bipolar counts for zero volts
+            }
+          else
+            {
+              dac_data = 0; //Unipolor counts for zero volts
+            }
+            //TODO: Implement dac direct
+            //status = DAC_Direct(device, 0, dac_data);
+            // if (status)
+            //   {
+            //     aiousb_library_err_print("status = %d", status);
+            //     return status;
+            //   }
+        }
+      status = GenericVendorWrite(device, 0xb7, 0, 0, 0, nullptr);
+      if (status)
+        {
+          aiousb_library_err_print("status = %d", status);
+        }
+      return status;
+    }
+
+    if (!device->descriptor.b_dac_board_range)
+    {
+      return -EBADRQC;
+    }
+    status = GenericVendorWrite(device, AUR_DAC_RANGE,
+                                          range_code,
+                                          0,
+                                          0,
+                                          nullptr);
+    if (status)
+      {
+        aiousb_library_err_print("status = %d", status);
+      }
+    return status;
+}
+
+int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts)
+{
+  uint32_t dac_stream_data = 0;
+  double clock_hz = 0;
+
+  if ( 0 == device->descriptor.imm_dacs)
+    {
+      return -EBADRQC;
+    }
+
+  //TODO: reference code checks a couple of state variables within the device
+  //structure here. bDACOpen and bDACClosing
+
+  if (channel >= device->descriptor.imm_dacs)
+    {
+      return -EINVAL;
+    }
+
+  if (device->descriptor.b_dac_dio_stream)
+    {
+      clock_hz = dac_dio_stream_imm_hz;
+      //TODO: Implement aiousb_dac_output_process
+      //return aiousb_dac_output_process(device, clock_hz, 2, &counts);
+      return -EFAULT;
+    }
+  else
+    {
+      return GenericVendorWrite(device,
+                                        AUR_DAC_IMMEDIATE,
+                                        counts,
+                                        channel,
+                                        0,
+                                        nullptr);
+    }
+
+}
+
 
 int QueryDeviceInfo(unsigned long device_index,
                             uint32_t *pid, uint32_t *name_size, char *name,
