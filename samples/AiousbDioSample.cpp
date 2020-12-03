@@ -22,7 +22,7 @@ int main (int argc, char **argv)
 
   std::cout<<"ACCES AIOUSB-Linux DIO sample"<<std::endl;
 
-  AIOUSB::aiousb_init();
+  AIOUSB::AiousbInit();
 
   //Try to get a device handle.
   Status = SampleGetDeviceHandle(argc, argv, &Device);
@@ -39,7 +39,7 @@ int main (int argc, char **argv)
 
   // DIO bytes is something we can query from the aiousb library so we see how
   // many are available on this device.
-  AIOUSB::aiousb_query_device_info(Device, &Pid, &nameSize, name, &DioBytes, nullptr);
+  AIOUSB::QueryDeviceInfo(Device, &Pid, &nameSize, name, &DioBytes, nullptr);
 
   if ( 0 == DioBytes )
   {
@@ -70,26 +70,26 @@ int main (int argc, char **argv)
   memset(Data, 0xff, DioBytes);
 
   std::cout << "Configuring DIO for output and setting high" << std::endl;
-  AIOUSB::aiousb_dio_configure(Device, false, Config, Data);
+  AIOUSB::DIO_Configure(Device, false, Config, Data);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   std::cout << "Setting output to low" << std::endl;
   memset(Data, 0, DioBytes);
-  AIOUSB::aiousb_dio_write_all(Device, Data);
+  AIOUSB::DIO_WriteAll(Device, Data);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   std::cout << "Setting output to high" << std::endl;
   memset(Data, 0xff, DioBytes);
-  aiousb_dio_write_all(Device, Data);
+  DIO_WriteAll(Device, Data);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   std::cout << "Configuring DIO for input" << std::endl;
   memset(Config, 0, ConfigBytes);
-  aiousb_dio_configure(Device, false, Config, Data);
-  AIOUSB::aiousb_dio_read_all(Device, Data);
+  DIO_Configure(Device, false, Config, Data);
+  AIOUSB::DIO_ReadAll(Device, Data);
 
   std::cout << "Read: ";
   for (unsigned int i = 0 ; i < DioBytes ; i++)
@@ -102,7 +102,7 @@ int main (int argc, char **argv)
   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
   std::cout << "Performing second read" << std::endl;
-  AIOUSB::aiousb_dio_read_all(Device, Data);
+  AIOUSB::DIO_ReadAll(Device, Data);
   std::cout << "Read: ";
   for (unsigned int i = 0 ; i < DioBytes ; i++)
   {

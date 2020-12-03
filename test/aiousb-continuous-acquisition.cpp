@@ -24,7 +24,7 @@ void callback (uint16_t *buff, uint32_t buff_size,
   for (int sample = 0; sample <(END_CHANNEL - START_CHANNEL + 1); sample++)
   {
     //this volts assumes a range of 0 - 10 v and no post_scale.
-    //see aiousb_get_scan_v for a more complete implementation.
+    //see ADC_GetScanV for a more complete implementation.
     volts = buff[sample] * 1.0/65536.0;
     volts = volts * 10;
     printf("channel %d: %f\n", sample + 1, volts);
@@ -41,7 +41,7 @@ int main (int argc, char **argv)
   uint8_t config_buff[21];
   uint32_t config_size = sizeof(config_buff);
 
-  status = AIOUSB::aiousb_init();
+  status = AIOUSB::AiousbInit();
 
   if (status != 0)
     {
@@ -55,7 +55,7 @@ int main (int argc, char **argv)
 		return -1;
 	}
 
-	status = AIOUSB::aiousb_device_handle_by_path(argv[1], &device);
+	status = AIOUSB::DeviceHandleByPath(argv[1], &device);
 
 	if (status)
 	{
@@ -63,7 +63,7 @@ int main (int argc, char **argv)
 		return -1;
 	}
 
-  status = AIOUSB::aiousb_adc_get_config(device, config_buff, &config_size);
+  status = AIOUSB::ADC_GetConfig(device, config_buff, &config_size);
 
 if (status)
 {
@@ -72,26 +72,26 @@ if (status)
 
 config_buff[0x11] = 0x5; //set scans to be started by counter
 
-status = AIOUSB::aiousb_adc_set_config(device, config_buff, &config_size);
+status = AIOUSB::ADC_SetConfig(device, config_buff, &config_size);
 
 if (status)
 {
   err_printf("Error setting config");
 }
 
-status = AIOUSB::aiousb_set_scan_limits(device, START_CHANNEL, END_CHANNEL);
+status = AIOUSB::ADC_SetScanLimits(device, START_CHANNEL, END_CHANNEL);
 
 if (status)
 {
   err_printf("Error setting scan limits");
 }
 
-status = AIOUSB::aiousb_adc_set_oversample(device, OVERSAMPLE);
+status = AIOUSB::ADC_SetOversample(device, OVERSAMPLE);
 
 
-  AIOUSB::aiousb_ctr_8254_start_output_frequency(device, 0, &frequency);
+  AIOUSB::CTR_8254StartOutputFreq(device, 0, &frequency);
 
-  status = AIOUSB::aiousb_adc_bulk_continuous_start(device,
+  status = AIOUSB::ADC_BulkContinuousStart(device,
                                 512 * (END_CHANNEL - START_CHANNEL + 1),
                                 3,
                                 0,
@@ -106,7 +106,7 @@ status = AIOUSB::aiousb_adc_set_oversample(device, OVERSAMPLE);
     sleep(6);
   }
 
-  AIOUSB::aiousb_adc_bulk_continuous_end(device);
+  AIOUSB::ADC_BulkContinuousEnd(device);
 
   sleep(5);
 

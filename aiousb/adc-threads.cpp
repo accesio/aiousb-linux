@@ -32,7 +32,7 @@ void *adc_worker_execute (void *context)
   {
     case bcs_adc:
       bc_data = 0x5;
-      aiousb_generic_vendor_write(adc_worker_context->device,
+      GenericVendorWrite(adc_worker_context->device,
                             0xbc,
                             adc_worker_context->bytes_left >> 17,
                             adc_worker_context->bytes_left >> 1,
@@ -41,7 +41,7 @@ void *adc_worker_execute (void *context)
 
       break;
     case bcs_dio:
-      aiousb_generic_vendor_write(adc_worker_context->device,
+      GenericVendorWrite(adc_worker_context->device,
                             0xbc,
                             0x3,
                             0,
@@ -65,7 +65,7 @@ void *adc_worker_execute (void *context)
 
     this_transfer = 0;
 
-    status = aiousb_generic_bulk_in(adc_worker_context->device,
+    status = AWU_GenericBulkIn(adc_worker_context->device,
                                 0,
                                 ad_buff,
                                 transfer_length,
@@ -73,7 +73,7 @@ void *adc_worker_execute (void *context)
 
     if (status)
       {
-        aiousb_library_err_print("aiousb_generic_bulk_in returned %d", status);
+        aiousb_library_err_print("AWU_GenericBulkIn returned %d", status);
         goto ERR_XFER;
       }
 
@@ -92,7 +92,7 @@ void *adc_worker_execute (void *context)
 
   }while (adc_worker_context->bytes_left > 0);
 
-  aiousb_generic_vendor_write(adc_worker_context->device,
+  GenericVendorWrite(adc_worker_context->device,
                           0xbc,
                           0,
                           0,
@@ -272,7 +272,7 @@ void *adc_cont_buff_worker_execute(void *context)
 void adc_cont_acq_worker_do_bc_control(aiousb_device_handle device,
                                     uint32_t size, uint32_t control_data)
 {
-  aiousb_generic_vendor_write (device,
+  GenericVendorWrite (device,
                               0xbc,
                               size >> 16, size,
                               sizeof(control_data),
@@ -292,7 +292,7 @@ void *adc_cont_acq_worker_execute (void *context)
 
   if (this_context->bcs_style == bcs_dio)
     {
-      aiousb_generic_vendor_write(this_context->device,
+      GenericVendorWrite(this_context->device,
                                     0xbc,
                                     0x3,
                                     0,
@@ -304,7 +304,7 @@ void *adc_cont_acq_worker_execute (void *context)
       //counter control is always zero
       if (this_context->b_counter_control)
         {
-          aiousb_generic_vendor_write(this_context->device,
+          GenericVendorWrite(this_context->device,
                                         0xc5,
                                         0x3,
                                         0,
@@ -330,7 +330,7 @@ void *adc_cont_acq_worker_execute (void *context)
       0);
     this_buff->used_size = 0;
 
-    status = aiousb_generic_bulk_in(this_context->device,
+    status = AWU_GenericBulkIn(this_context->device,
       0,
       this_buff->ad_buff,
       this_context->adc_cont_buff_worker_context->bytes_per_buff,
@@ -340,7 +340,7 @@ void *adc_cont_acq_worker_execute (void *context)
        {
          if (this_context->bcs_style == bcs_dio)
             {
-              aiousb_generic_vendor_write(this_context->device,
+              GenericVendorWrite(this_context->device,
                                             0xbc,
                                             0x10,
                                             0,
@@ -371,7 +371,7 @@ void *adc_cont_acq_worker_execute (void *context)
 
   if (this_context->bcs_style == bcs_dio)
     {
-      aiousb_generic_vendor_write(this_context->device,
+      GenericVendorWrite(this_context->device,
                                     0xbc,
                                     0x10,
                                     0,
@@ -386,7 +386,7 @@ void *adc_cont_acq_worker_execute (void *context)
   bytes_left = 0;
   data_size = sizeof(bytes_left);
 
-  aiousb_generic_vendor_read(this_context->device,
+  GenericVendorRead(this_context->device,
                           0xbc,
                           0,
                           0,
@@ -404,7 +404,7 @@ void *adc_cont_acq_worker_execute (void *context)
 
       bytes_left = data_size < bytes_left ? data_size : bytes_left;
 
-      status = aiousb_generic_bulk_in(this_context->device,
+      status = AWU_GenericBulkIn(this_context->device,
                                           0,
                                           this_buff->ad_buff,
                                           bytes_left,
@@ -561,7 +561,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
 
   if (mDevice->descriptor.b_adc_dio_stream) //bcs_dio in reference code
     {
-      aiousb_generic_vendor_write(mDevice,
+      GenericVendorWrite(mDevice,
                                     0xbc,
                                     0x3,
                                     0,
@@ -571,7 +571,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
   else
     {
       control_data = 0x01000007;
-      aiousb_generic_vendor_write(mDevice,
+      GenericVendorWrite(mDevice,
                                       0xbc,
                                       0,
                                       0,
@@ -583,7 +583,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
       {
         this_buff = mBuffManager->EmptyBufferGet();
 
-        status = aiousb_generic_bulk_in(mDevice,
+        status = AWU_GenericBulkIn(mDevice,
                                       0,
                                       this_buff,
                                       mBuffManager->SizeGet(),
@@ -605,7 +605,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
 
     if (mDevice->descriptor.b_adc_dio_stream) //bcs_dio in reference code
     {
-      aiousb_generic_vendor_write(mDevice,
+      GenericVendorWrite(mDevice,
                                     0xbc,
                                     0x10,
                                     0,
@@ -615,7 +615,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
   else
     {
       control_data = 0x00020002;
-      aiousb_generic_vendor_write(mDevice,
+      GenericVendorWrite(mDevice,
                                       0xbc,
                                       0,
                                       0,
@@ -625,7 +625,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
 
     bytes_left = 0;
 
-    aiousb_generic_vendor_read(mDevice,
+    GenericVendorRead(mDevice,
                           0xbc,
                           0,
                           0,
@@ -637,7 +637,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
       {
         this_buff = mBuffManager->EmptyBufferGet();
 
-        status = aiousb_generic_bulk_in(mDevice,
+        status = AWU_GenericBulkIn(mDevice,
                                         0,
                                         this_buff,
                                         bytes_left,

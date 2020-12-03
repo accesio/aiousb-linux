@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 {
 	int status;
 
-	status = AIOUSB::aiousb_init();
+	status = AIOUSB::AiousbInit();
 
 	if (status != 0)
 	{
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	status = AIOUSB::aiousb_device_handle_by_path(argv[1], &device);
+	status = AIOUSB::DeviceHandleByPath(argv[1], &device);
 
 	if (status)
 	{
@@ -44,10 +44,10 @@ int main(int argc, char **argv)
   {
     uint8_t data[40];
     memset(data, 0x40, sizeof(data));
-    status = AIOUSB::aiousb_custom_eeprom_write(device, 0, sizeof(data), data);
+    status = AIOUSB::CustomEEPROMWrite(device, 0, sizeof(data), data);
     printf("status after write = %d\n", status);
     memset(data, 0, sizeof(data));
-    status = AIOUSB::aiousb_custom_eeprom_read(device, 0, sizeof(data), data);
+    status = AIOUSB::CustomEEPROMRead(device, 0, sizeof(data), data);
     printf("status after read = %d\n", status);
 
     for (unsigned int count = 0; count < sizeof(data) ; count++)

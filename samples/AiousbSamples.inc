@@ -2,11 +2,11 @@ bool SampleGetDeviceHandle (int argc, char **argv, AIOUSB::aiousb_device_handle 
 {
   if ( 1 == argc )
   {
-    return AIOUSB::aiousb_device_handle_by_index(diOnly, Device);
+    return AIOUSB::DeviceHandleByIndex(diOnly, Device);
   }
   else
   {
-    return AIOUSB::aiousb_device_handle_by_path(argv[1], Device);
+    return AIOUSB::DeviceHandleByPath(argv[1], Device);
   }
 
 }
