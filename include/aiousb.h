@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include "accesio_usb_ioctl.h"
 
+namespace AIOUSB {
+
 typedef struct aiousb_device* aiousb_device_handle;
 
 #define ADC_CONT_CALLBACK_FLAG_BEGIN_BC 0x1
@@ -299,6 +301,8 @@ int aiousb_abort_pipe(unsigned long device_index);
 #ifdef __cplusplus
 }
 #endif
+
+} //namespace AIOUSB
 
 #endif
 

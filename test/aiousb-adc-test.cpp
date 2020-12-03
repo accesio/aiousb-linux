@@ -18,12 +18,12 @@
 int main (int arg, char **argv)
 {
   int status;
-  aiousb_device_handle device;
+  AIOUSB::aiousb_device_handle device;
   uint8_t *config_buff = NULL;;
   uint32_t config_size = 0;
 
-  aiousb_init();
-  status = aiousb_device_handle_by_path("/dev/accesio/usb_ai16_64ma_3", &device);
+  AIOUSB::aiousb_init();
+  status = AIOUSB::aiousb_device_handle_by_path("/dev/accesio/usb_ai16_64ma_3", &device);
 
   if (status)
   {
@@ -33,16 +33,16 @@ int main (int arg, char **argv)
 
   printf("device = %p\n", device);
 
-  status = aiousb_adc_get_config(device, NULL, &config_size);
+  status = AIOUSB::aiousb_adc_get_config(device, NULL, &config_size);
 
   config_buff = (uint8_t *) malloc(config_size);
 
-  status = aiousb_adc_get_config(device, config_buff, &config_size);
+  status = AIOUSB::aiousb_adc_get_config(device, config_buff, &config_size);
 
 
-  aiousb_adc_range1(device, 2, 5, 0);
+  AIOUSB::aiousb_adc_range1(device, 2, 5, 0);
 
-  status = aiousb_adc_get_config(device, config_buff, &config_size);
+  status = AIOUSB::aiousb_adc_get_config(device, config_buff, &config_size);
 
 
   free(config_buff);

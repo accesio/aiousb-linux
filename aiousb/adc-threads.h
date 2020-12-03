@@ -6,6 +6,7 @@
 #include <semaphore.h>
 #include "safe-queue.h"
 #include "aiousb.h"
+namespace AIOUSB {
 enum bcs_style {bcs_adc, bcs_dio};
 
 static const int adc_worker_min_block = 1024 * 1024;
@@ -127,6 +128,6 @@ class ContinuousAdcWorker
     double mHertz;
 };
 
-
+} //namespace AIOUSB
 
 #endif

@@ -9,7 +9,7 @@
 
 
 
-aiousb_device_handle device;
+AIOUSB::aiousb_device_handle device;
 
 #define START_CHANNEL 0
 #define END_CHANNEL 15
@@ -21,11 +21,11 @@ int main (int arg, char **argv)
   int status;
   timespec begin, end;
 
-  status = aiousb_init();
+  status = AIOUSB::aiousb_init();
 
   err_printf("status = %d", status);
 
-  status = aiousb_device_handle_by_path(argv[1], &device);
+  status = AIOUSB::aiousb_device_handle_by_path(argv[1], &device);
 
   err_printf("status = %d", status);
 
@@ -34,19 +34,19 @@ int main (int arg, char **argv)
       err_printf("Unable to open device");
     }
 
-  status = aiousb_set_scan_limits(device, START_CHANNEL, END_CHANNEL);
+  status = AIOUSB::aiousb_set_scan_limits(device, START_CHANNEL, END_CHANNEL);
 
   err_printf("status = %d", status);
 
-  status = aiousb_adc_set_oversample(device, 5);
+  status = AIOUSB::aiousb_adc_set_oversample(device, 5);
 
   err_printf("status = %d", status);
 
-  status = aiousb_adc_init_fast_scan_v(device);
+  status = AIOUSB::aiousb_adc_init_fast_scan_v(device);
 
   err_printf("status = %d", status);
 
-  status = aiousb_adc_get_fast_scan_v(device, voltages);
+  status = AIOUSB::aiousb_adc_get_fast_scan_v(device, voltages);
 
   err_printf("status = %d", status);
 
@@ -66,6 +66,6 @@ int main (int arg, char **argv)
 
   printf("aiousb_get_fast_scan_v Loop: Channels=%d, scans = %d,  time=%ldms\n", END_CHANNEL-START_CHANNEL+1, LOOP_COUNT, timespec_sub_to_msec(&end, &begin));
 
-  aiousb_adc_reset_fast_scan_v(device);
+  AIOUSB::aiousb_adc_reset_fast_scan_v(device);
 
 }

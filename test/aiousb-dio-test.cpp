@@ -16,11 +16,11 @@
 int main (int arg, char **argv)
 {
     int status;
-    aiousb_device_handle device;
+    AIOUSB::aiousb_device_handle device;
 
-    aiousb_init();
+    AIOUSB::aiousb_init();
 
-    status = aiousb_device_handle_by_path("/dev/accesio/usb_dio_32i_3", &device);
+    status = AIOUSB::aiousb_device_handle_by_path("/dev/accesio/usb_dio_32i_3", &device);
 
     if (status)
     {
@@ -36,15 +36,15 @@ int main (int arg, char **argv)
         memset(out_mask, 0xff, sizeof(out_mask));
         memset(dio_bytes, 0xff, sizeof(dio_bytes));
 
-        status = aiousb_dio_configure(device, 0, out_mask, dio_bytes);
+        status = AIOUSB::aiousb_dio_configure(device, 0, out_mask, dio_bytes);
 
-        status = aiousb_dio_write1(device, 0, 0);
+        status = AIOUSB::aiousb_dio_write1(device, 0, 0);
         sleep(3);
-        status = aiousb_dio_write1(device, 0, 1);
+        status = AIOUSB::aiousb_dio_write1(device, 0, 1);
         sleep(3);
-        status = aiousb_dio_write1(device, 0, 0);
+        status = AIOUSB::aiousb_dio_write1(device, 0, 0);
         sleep(3);
-        status = aiousb_dio_write1(device, 0, 1);
+        status = AIOUSB::aiousb_dio_write1(device, 0, 1);
         sleep(3);
     }
 
@@ -52,11 +52,11 @@ int main (int arg, char **argv)
         unsigned char dio_bytes[4] = {0};
         unsigned char a_byte = 0x0;
 
-        status = aiousb_dio_read_all(device, dio_bytes);
+        status = AIOUSB::aiousb_dio_read_all(device, dio_bytes);
 
         printf("break\n");
 
-        status = aiousb_dio_read_8(device, 0, &a_byte);
+        status = AIOUSB::aiousb_dio_read_8(device, 0, &a_byte);
 
         printf("break\n");
     }

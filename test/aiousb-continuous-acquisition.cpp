@@ -36,12 +36,12 @@ void callback (uint16_t *buff, uint32_t buff_size,
 int main (int argc, char **argv)
 {
   int status;
-  aiousb_device_handle device = NULL;
+  AIOUSB::aiousb_device_handle device = NULL;
   double frequency = FREQUENCY;
   uint8_t config_buff[21];
   uint32_t config_size = sizeof(config_buff);
 
-  status = aiousb_init();
+  status = AIOUSB::aiousb_init();
 
   if (status != 0)
     {
@@ -55,7 +55,7 @@ int main (int argc, char **argv)
 		return -1;
 	}
 
-	status = aiousb_device_handle_by_path(argv[1], &device);
+	status = AIOUSB::aiousb_device_handle_by_path(argv[1], &device);
 
 	if (status)
 	{
@@ -63,7 +63,7 @@ int main (int argc, char **argv)
 		return -1;
 	}
 
-  status = aiousb_adc_get_config(device, config_buff, &config_size);
+  status = AIOUSB::aiousb_adc_get_config(device, config_buff, &config_size);
 
 if (status)
 {
@@ -72,26 +72,26 @@ if (status)
 
 config_buff[0x11] = 0x5; //set scans to be started by counter
 
-status = aiousb_adc_set_config(device, config_buff, &config_size);
+status = AIOUSB::aiousb_adc_set_config(device, config_buff, &config_size);
 
 if (status)
 {
   err_printf("Error setting config");
 }
 
-status = aiousb_set_scan_limits(device, START_CHANNEL, END_CHANNEL);
+status = AIOUSB::aiousb_set_scan_limits(device, START_CHANNEL, END_CHANNEL);
 
 if (status)
 {
   err_printf("Error setting scan limits");
 }
 
-status = aiousb_adc_set_oversample(device, OVERSAMPLE);
+status = AIOUSB::aiousb_adc_set_oversample(device, OVERSAMPLE);
 
 
-  aiousb_ctr_8254_start_output_frequency(device, 0, &frequency);
+  AIOUSB::aiousb_ctr_8254_start_output_frequency(device, 0, &frequency);
 
-  status = aiousb_adc_bulk_continuous_start(device,
+  status = AIOUSB::aiousb_adc_bulk_continuous_start(device,
                                 512 * (END_CHANNEL - START_CHANNEL + 1),
                                 3,
                                 0,
@@ -106,7 +106,7 @@ status = aiousb_adc_set_oversample(device, OVERSAMPLE);
     sleep(6);
   }
 
-  aiousb_adc_bulk_continuous_end(device);
+  AIOUSB::aiousb_adc_bulk_continuous_end(device);
 
   sleep(5);
 

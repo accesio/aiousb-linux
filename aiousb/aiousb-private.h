@@ -15,6 +15,8 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+namespace AIOUSB {
+
 struct pnp_data
 {
     uint8_t pnp_size;
@@ -58,5 +60,7 @@ struct aiousb_device
   uint8_t *config_fast;
   unsigned int config_size;
 };
+
+} //namespace AIOUSB
 
 #endif

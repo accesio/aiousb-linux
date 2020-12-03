@@ -4,6 +4,7 @@
 
 #include "aiousb-private.h"
 
+namespace AIOUSB {
 
 ///////////////////adc_worker thread start
 void *adc_worker_execute (void *context)
@@ -674,3 +675,6 @@ void ContinuousAdcWorker::ExecuteCallback ()
   sleep(1);
 
 }
+
+} //namespace AIOUSB
+

@@ -26,13 +26,6 @@
 #define ACCESIO_MAJOR  160
 #define ACCESIO_USB_BUF_SZ 64
 
-
-
-
-// #include "../common/driver.h"
-// #include "../common/ioctl.h"
-// #include "../common/usbdev.h"
-
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/slab.h>
@@ -645,7 +638,7 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
         aio_driver_err_print("copy_from_user returned %d\n", bytes_remaining);
     }
 
-    aio_driver_dev_print("Calling contrl_msg");
+    aio_driver_dev_print("Calling control_msg");
 
     if (context->read)
     {
@@ -667,7 +660,7 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
                               1000);
     if (status < 0)
     {
-        aio_driver_err_print("usb_ctrol_msg returned %d", status);
+        aio_driver_err_print("usb_control_msg returned %d", status);
     }
 
     if (context->read)

@@ -21,7 +21,7 @@
 
 #include "timespec-util.h"
 
-
+namespace AIOUSB {
 
 #define MAX_CONFIG_SIZE 21
 #define MAX_CHANNELS_FOR_SCAN 128
@@ -3354,3 +3354,5 @@ int aiousb_abort_pipe(unsigned long device_index)
 {
   return aiousb_abort_pipe(aiousb_handle_by_index_private(device_index));
 }
+
+} //namespace AIOUSB
