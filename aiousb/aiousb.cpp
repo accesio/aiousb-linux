@@ -591,8 +591,6 @@ int AWU_GenericBulkOut (aiousb_device_handle device, unsigned int pipe_index,
 
   aiousb_debug_print("Enter");
 
-  printf("WARNING: bulk_out hasn't been proven to work yet\n");
-
   context.pipe_index = pipe_index;
   context.data = data;
   context.size = size;
@@ -600,8 +598,6 @@ int AWU_GenericBulkOut (aiousb_device_handle device, unsigned int pipe_index,
   context.read = 0;
 
   status = ioctl(device->fd, ACCESIO_USB_BULK_XFER, &context);
-
-  printf("%s: status = %d\n", __FUNCTION__, status);
 
   return status;
 }

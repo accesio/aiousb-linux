@@ -46,7 +46,7 @@
 
 #include "accesio_usb_ioctl.h"
 
-#define ACCESIO_USB_MINOR	192
+#define ACCESIO_USB_MINOR	1
 
 #define ACCESIO_USB_ANCHOR_TIMEOUT 1000
 
@@ -197,6 +197,7 @@ static struct usb_class_driver accesio_usb_class = {
     .devnode = &accesio_usb_get_devnode,
     .minor_base = ACCESIO_USB_MINOR,
 };
+static int loaded_count = 0;
 
 /*
  * For writing to RAM using a first (hardware) or second (software)
@@ -844,6 +845,7 @@ static int accesio_usb_probe(struct usb_interface* interface, const struct usb_d
     int retval;
     int i;
     struct accesio_usb_device_info* dev = kzalloc(sizeof(accesio_usb_device_info), GFP_KERNEL);
+    size_t name_length = 0;
     aio_driver_debug_print("Enter probe");
     if (!dev) { return -ENOMEM; }
     dev->product_id = id->idProduct;
@@ -876,7 +878,9 @@ static int accesio_usb_probe(struct usb_interface* interface, const struct usb_d
     }
     else
     {
-        accesio_usb_class.name = dev->acces_usb_device_descriptor->name;
+        name_length = snprintf(NULL, 0, "%s_%d", dev->acces_usb_device_descriptor->name, loaded_count);
+        accesio_usb_class.name = kmalloc(name_length + 1, GFP_KERNEL);
+        sprintf(accesio_usb_class.name, "%s_%d", dev->acces_usb_device_descriptor->name, loaded_count);
         retval = usb_register_dev(interface, &accesio_usb_class);
         if (retval) {
             // something prevented us from registering this driver
@@ -887,6 +891,7 @@ static int accesio_usb_probe(struct usb_interface* interface, const struct usb_d
         dev->urb = usb_alloc_urb(0, GFP_KERNEL);
         init_completion(&dev->urb_completion);
         dev->dma_capable_buffer = kmalloc (DMA_BULK_BUFFER_SZ, GFP_KERNEL | GFP_DMA);
+        loaded_count++;
 
         aio_driver_dev_print("dev = %p", dev);
 
