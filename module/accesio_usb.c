@@ -118,6 +118,7 @@ struct accesio_usb_device_info {
     struct acces_usb_device_descriptor const *acces_usb_device_descriptor;
     struct urb *urb;
     struct completion urb_completion;
+    void *dma_capable_buffer;
 } accesio_usb_device_info;
 
 
@@ -687,7 +688,6 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
 {
     struct accesio_usb_bulk_transfer *context = (struct accesio_usb_bulk_transfer *)arg;
     int status = 0;
-    void *dma_capable_buffer = NULL; //TODO: Maybe put in device structure to avoid allocation every transfer
     unsigned int endpoint;
     unsigned int pipe;
     int bytes_remaining;
@@ -705,8 +705,8 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
 
     aio_driver_dev_print("passed access_ok");
 
-    dma_capable_buffer = usb_alloc_coherent (dev->udev, context->size, GFP_KERNEL, &dev->urb->transfer_dma);
-    bytes_remaining = copy_from_user(dma_capable_buffer, context->data, context->size);
+    dev->dma_capable_buffer = kmalloc( context->size,  GFP_KERNEL | GFP_DMA);
+    bytes_remaining = copy_from_user(dev->dma_capable_buffer, context->data, context->size);
 
     if ( 0 != bytes_remaining )
     {
@@ -729,7 +729,7 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
     usb_fill_bulk_urb(dev->urb,
                     dev->udev,
                     pipe,
-                    dma_capable_buffer,
+                    dev->dma_capable_buffer,
                     context->size,
                     accesio_urb_complete,
                     &dev->urb_completion);
@@ -753,7 +753,7 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
     if (context->read && !status )
     {
         aio_driver_dev_print("Copying data to user. transferred = %d", dev->urb->actual_length);
-        bytes_remaining = copy_to_user(context->data, dma_capable_buffer, dev->urb->actual_length);
+        bytes_remaining = copy_to_user(context->data, dev->dma_capable_buffer, dev->urb->actual_length);
         if ( 0 != bytes_remaining )
         {
             aio_driver_err_print("copy_to_user returned %d", bytes_remaining);
@@ -763,10 +763,8 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
 
 ERR_OUT:
 
-     usb_free_coherent(dev->udev,
-                    dev->urb->transfer_buffer_length,
-                    dev->urb->transfer_buffer,
-                    dev->urb->transfer_dma);
+    kfree(dev->dma_capable_buffer);
+    dev->dma_capable_buffer = NULL;
 
     return status;
 

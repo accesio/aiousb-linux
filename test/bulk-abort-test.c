@@ -87,7 +87,7 @@ int generic_bulk_in (int fd, unsigned int pipe_index, void *data, unsigned int s
 int main (int argc, char **argv)
 {
         unsigned char config_block[20];
-        int fd = open("/dev/accesio/usb_ai16_64ma_3", O_RDWR);
+        int fd = open("/dev/accesio/usb_aio16_16f_3", O_RDWR);
         unsigned short counts[NUM_SAMPLES];
         int transferred = 0;
         int i;
