@@ -5,7 +5,9 @@
 #include <stddef.h>
 #include "accesio_usb_ioctl.h"
 
+#ifdef __cplusplus
 namespace AIOUSB {
+#endif
 
 typedef struct aiousb_device* aiousb_device_handle;
 
@@ -37,6 +39,7 @@ uint32_t GetDevices();
 
 
 //device handle based functions
+#ifdef __cplusplus
 
 int QueryDeviceInfo(aiousb_device_handle device,
                               uint32_t *pid, uint32_t *name_size, char *name,
@@ -165,13 +168,14 @@ int ADC_ResetFastScanV(aiousb_device_handle device);
 
 int AbortPipe(aiousb_device_handle device);
 
-
+#endif
 
 ///Device index based functions
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
 int QueryDeviceInfo(unsigned long device_index,
                             uint32_t *pid, uint32_t *name_size, char *name,
                             uint32_t *dio_bytes, uint32_t *counters);
@@ -298,11 +302,11 @@ int ADC_GetFastScanV(unsigned long device_index, double *data);
 int ADC_ResetFastScanV(unsigned long device_index);
 
 int AbortPipe(unsigned long device_index);
-#ifdef __cplusplus
-}
-#endif
 
+#ifdef __cplusplus
+} //extern
 } //namespace AIOUSB
+#endif
 
 #endif
 

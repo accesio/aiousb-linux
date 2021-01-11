@@ -2,6 +2,9 @@ include_directories(${AIOUSB_SOURCE_DIR}/include)
 add_library(aiousb STATIC aiousb.cpp adc-threads.cpp)
 add_library(aiousb_shared SHARED aiousb.cpp adc-threads.cpp)
 
+set_property(TARGET aiousb aiousb_shared PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+
 if (AIOUSB_DEBUG)
   target_compile_definitions (aiousb PRIVATE AIOUSB_DEBUG=1)
   target_compile_definitions (aiousb_shared PRIVATE AIOUSB_DEBUG=1)

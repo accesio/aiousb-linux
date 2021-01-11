@@ -33,3 +33,10 @@ target_link_libraries(hotplug-testing ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${
 
 add_executable(aiousb-eeprom-test aiousb-eeprom-test.cpp)
 target_link_libraries(aiousb-eeprom-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
+target_link_libraries(aiousb-eeprom-test ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a)
+target_link_libraries(aiousb-eeprom-test m)
+target_link_libraries(aiousb-eeprom-test pthread)
+
+add_executable(aiousb-c-linkage-test aiousb-c-linkage-test.c)
+target_link_libraries(aiousb-c-linkage-test ${CMAKE_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
+target_link_libraries(aiousb-c-linkage-test stdc++)
