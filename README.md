@@ -3,12 +3,17 @@
 aiousb is the Linux implementation of the [ACCES I/O USB API](https://accesio.com/MANUALS/USB%20Software%20Reference%20Manual.html)
 as a linux kernel module and library.
 
-
 ## Install needed packages
 
 ```bash
 apt install git cmake build-essential libudev-dev
   ```
+
+## Obtaining the source
+
+```bash
+git clone https://github.com/accesio/aiousb-alpha aiousb
+```
 
 ## Build and install
 
