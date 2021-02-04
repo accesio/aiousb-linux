@@ -173,6 +173,8 @@ int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts);
 
 int AbortPipe(aiousb_device_handle device);
 
+int ResetChip(aiousb_device_handle device);
+
 #endif
 
 
@@ -313,6 +315,8 @@ int DAC_SetBoardRange (unsigned long device_index, uint32_t range_code);
 int DAC_Direct(unsigned long device_index, uint32_t channel, uint16_t counts);
 
 int AbortPipe(unsigned long device_index);
+
+int ResetChip(unsigned long device_index);
 
 #ifdef __cplusplus
 } //extern

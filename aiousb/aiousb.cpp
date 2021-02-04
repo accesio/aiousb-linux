@@ -3089,6 +3089,37 @@ int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts)
 
 }
 
+int AbortPipe(aiousb_device_handle device)
+{
+  return ioctl(device->fd, ACCESIO_USB_ABORT_PIPE);
+}
+
+int ResetChip(aiousb_device_handle device)
+{
+  int status = 0;
+  uint8_t CPUCSByte;
+
+  CPUCSByte = 0x01;
+
+  status = GenericVendorWrite(device, 0xa0, 0xe600, 0, 1, &CPUCSByte);
+
+  if (status)
+  {
+    aiousb_library_err_print("Error writing to chip. status = %d", status);
+    return status;
+  }
+
+  CPUCSByte = 0x00;
+  status = GenericVendorWrite(device, 0xa0, 0xe600, 0, 1, &CPUCSByte);
+
+  if (status)
+  {
+    aiousb_library_err_print("Error writing to chip. status = %d", status);
+  }
+
+  return status;
+}
+
 
 int QueryDeviceInfo(unsigned long device_index,
                             uint32_t *pid, uint32_t *name_size, char *name,
@@ -3427,10 +3458,6 @@ int ADC_SetConfig(unsigned long device_index, uint8_t *config_buff,
                           config_size);
 }
 
-int AbortPipe(aiousb_device_handle device)
-{
-  return ioctl(device->fd, ACCESIO_USB_ABORT_PIPE);
-}
 
 int ADC_InitFastScanV(unsigned long device_index)
 {
@@ -3451,6 +3478,11 @@ int ADC_ResetFastScanV(unsigned long device_index)
 int AbortPipe(unsigned long device_index)
 {
   return AbortPipe(aiousb_handle_by_index_private(device_index));
+}
+
+int ResetChip (unsigned long device_index)
+{
+  return ResetChip(aiousb_handle_by_index_private(device_index));
 }
 
 } //namespace AIOUSB
