@@ -68,18 +68,18 @@ int main (int argc, char **argv)
   memset(Config, 0xff, ConfigBytes);
   memset(Data, 0xff, DioBytes);
 
-  std::cout << "Configuring DIO for output and setting high" << std::endl;
+  std::cout << "Configuring DIO for output and setting high for 3 seconds" << std::endl;
   AIOUSB::DIO_Configure(Device, false, Config, Data);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-  std::cout << "Setting output to low" << std::endl;
+  std::cout << "Setting output to low for 3 seconds" << std::endl;
   memset(Data, 0, DioBytes);
   AIOUSB::DIO_WriteAll(Device, Data);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-  std::cout << "Setting output to high" << std::endl;
+  std::cout << "Setting output to high for 3 seconds" << std::endl;
   memset(Data, 0xff, DioBytes);
   DIO_WriteAll(Device, Data);
 
