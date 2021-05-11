@@ -7,3 +7,6 @@ target_link_libraries(AiousbDioSample ${AIOUSB_LIBS})
 
 add_executable(AiousbDacSample AiousbDacSample.cpp)
 target_link_libraries(AiousbDacSample ${AIOUSB_LIBS})
+
+add_executable(AiousbIiroSample AiousbIiroSample.cpp)
+target_link_libraries(AiousbIiroSample ${AIOUSB_LIBS})
