@@ -1,6 +1,6 @@
 #include <iostream>
 
-bool SampleGetDeviceHandle (int argc, char **argv, AIOUSB::aiousb_device_handle *Device)
+int SampleGetDeviceHandle (int argc, char **argv, AIOUSB::aiousb_device_handle *Device)
 {
   if ( 1 == argc )
   {

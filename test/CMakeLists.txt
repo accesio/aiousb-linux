@@ -11,6 +11,9 @@ set(AIOUSB_LIBS m pthread udev)
 add_executable(aiousb-test aiousb-test.cpp)
 target_link_libraries(aiousb-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
 
+add_executable(aiousb-iiro-test aiousb-iiro-test.cpp)
+target_link_libraries(aiousb-iiro-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
+
 add_executable(aiousb-dio-test aiousb-dio-test.cpp)
 target_link_libraries(aiousb-dio-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
 

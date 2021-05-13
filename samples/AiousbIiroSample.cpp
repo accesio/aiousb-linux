@@ -70,16 +70,18 @@ int main (int argc, char **argv)
 
   uint8_t Data[4] = { 0xff, 0xff, 0xff, 0xff };
 
+  std::cout << "Energizing all relays" << std::endl;
   AIOUSB::DIO_WriteAll(Device, Data);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   std::cout << "Performing walking bit on relays" << std::endl;
 
-  for (int i = 0 ; i < 16 ; i++)
+  for (int i = 0 ; i < 8 ; i++)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    memset (Data, i, sizeof(Data));
-    std::cout << "Energizing relay " << i << std::endl;
-    AIOUSB::DIO_WriteAll(Device, Data);
+    AIOUSB::DIO_Write1(Device, i, 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    AIOUSB::DIO_Write1(Device, i, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   std::cout << "Reading input " << std::endl;
@@ -87,7 +89,7 @@ int main (int argc, char **argv)
 
   for (int i = 0 ; i < 4 ; i++)
   {
-    std::cout << "bits "<< std::dec << i*8 << "-" << (i+1)*8-1 << ": 0x" << std::hex << std::setw(2) << std::setfill('0') << int(Data[i]) << "   ";
+    std::cout << "bits "<< std::dec << i*8 << "-" << (i+1)*8-1 << ": 0x" << std::hex << std::setw(2) << std::setfill('0') << int(Data[i]) << std::endl;
   }
   std::cout << std::endl;
 
