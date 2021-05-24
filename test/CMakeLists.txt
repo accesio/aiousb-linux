@@ -17,6 +17,10 @@ target_link_libraries(aiousb-iiro-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a $
 add_executable(aiousb-dio-test aiousb-dio-test.cpp)
 target_link_libraries(aiousb-dio-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
 
+Add_Custom_Target(aiousb-dio-32-test ALL COMMAND ${CMAKE_COMMAND} -E create_symlink aiousb-dio-test aiousb-dio32-test)
+Add_Custom_Target(aiousb-dio-32i-test ALL COMMAND ${CMAKE_COMMAND} -E create_symlink aiousb-dio-test aiousb-dio32i-test)
+Add_Custom_Target(aiousb-dio-96-test ALL COMMAND ${CMAKE_COMMAND} -E create_symlink aiousb-dio-test aiousb-dio96-test)
+
 add_executable(offset-test offset-test.c)
 
 add_executable(aiousb-adc-test aiousb-adc-test.cpp)
