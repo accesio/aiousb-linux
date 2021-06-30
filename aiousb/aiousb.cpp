@@ -424,6 +424,8 @@ int DeviceHandleByPath (const char *fname, aiousb_device_handle *device)
 
   aiousb_debug_print("Enter");
 
+  if (!aiousb_init_complete) return -ENAVAIL;
+
   for ( i = 0 ; i < aiousb_device_count ; i++)
   {
     if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_devices[i]->fd != -1)
@@ -438,7 +440,7 @@ int DeviceHandleByPath (const char *fname, aiousb_device_handle *device)
 
 aiousb_device_handle aiousb_handle_by_index_private(unsigned long device_index)
 {
-    aiousb_debug_print("Enter");
+  aiousb_debug_print("Enter");
 
   if (device_index == diOnly)
   {
@@ -454,7 +456,10 @@ aiousb_device_handle aiousb_handle_by_index_private(unsigned long device_index)
 
 int DeviceHandleByIndex(unsigned long device_index, aiousb_device_handle *device)
 {
-    aiousb_debug_print("Enter");
+  aiousb_debug_print("Enter");
+
+  if (!aiousb_init_complete) return -ENAVAIL;
+
 
   *device = aiousb_handle_by_index_private(device_index);
   if (device == NULL)
@@ -474,6 +479,9 @@ int DeviceIndexByPath (const char *fname, unsigned long *device_index)
 
   aiousb_debug_print("Enter");
 
+  if (!aiousb_init_complete) return -ENAVAIL;
+
+
   for ( i = 0 ; i < aiousb_device_count ; i++)
   {
     if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_devices[i]->fd != -1)
@@ -489,6 +497,8 @@ int DeviceIndexByPath (const char *fname, unsigned long *device_index)
 uint32_t GetDevices()
 {
   uint32_t retval = 0;
+
+  if (!aiousb_init_complete) return -ENAVAIL;
 
   for (int i = 0 ; i < aiousb_device_count ; i++)
   {
