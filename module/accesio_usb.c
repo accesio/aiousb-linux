@@ -681,7 +681,7 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
 void accesio_urb_complete(struct urb *urb)
 {
     struct completion *completion = (struct completion *)urb->context;
-    aio_driver_dev_print("Reached competion callback");
+    aio_driver_dev_print("Reached completion callback");
     complete(completion);
 }
 
@@ -806,6 +806,10 @@ static int accesio_usb_ioctl_internal(struct file* filp, unsigned int cmd, unsig
                 // flight? Do we care if the USB core doesn't care?
                 status = usb_unlink_urb(dev->urb);
             }
+            break;
+        case ACCESIO_USB_GET_PORT_SPEED:
+            aio_driver_debug_print("ACCESIO_USB_GET_PORT_SPEED");
+            status = dev->udev->speed;
             break;
         default:
             aio_driver_err_print("invalid ioctl cmd");

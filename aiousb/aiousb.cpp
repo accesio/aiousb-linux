@@ -14,6 +14,7 @@
 #include <dirent.h>
 #include <libudev.h>
 
+#include <fstream>
 
 #include "aiousb.h"
 #include "accesio_usb_ioctl.h"
@@ -3000,6 +3001,392 @@ int ADC_Range1(aiousb_device_handle device, uint32_t adc_channel,
   return status;
 }
 
+//If doing anything with code for SetCal consult CoreExports.pas
+//as this is based off of ADC_SetCalAndSave()
+class SetCalWorker
+{
+  public:
+    //CalFileName and OutFileName need to be valid for the life of the object.
+    SetCalWorker(aiousb_device_handle Device, const char *CalFileName, const char *OutFileName)
+    {
+      mDevice = Device;
+      mCalFileName = CalFileName;
+      mShouldAppend = false;
+      mOutFileName = OutFileName;
+
+      uint32_t PacketWords;
+      if (ioctl(mDevice->fd, ACCESIO_USB_GET_PORT_SPEED) <= 2) //USB_SPEED_FULL
+      {
+        PacketWords = 0x40 / 2;
+      }
+      else
+      {
+        PacketWords = 0x200 / 2;
+      }
+      mPacketsMask = 0xFFFFFFFF * PacketWords;
+      mChunkSize = PacketWords * 4;
+
+    }
+
+    int SetCal();
+
+
+  private:
+    aiousb_device_handle mDevice;
+    const char *mCalFileName;
+    const char *mOutFileName;
+    std::array<uint16_t, 0x10000> mCalTable;
+    bool mShouldAppend;
+    int mChunkSize;
+    uint32_t mPacketsMask;
+
+    double  LoRefRef = 0 * 6553.6;
+    double  HiRefRef = 9.9339 * 6553.6;
+
+    int LoadCalTable();
+    int WriteCalToFile();
+    uint16_t GetHiRef();
+    double ConfigureAndBulkAcquire(std::vector<uint8_t> &Config);
+
+
+};
+// Delphi code for determining ChunkSize.
+// For now we'll just assume the lower speed until I figure out how to get the
+// host controller speed in Linux
+//       //Determine packetization and buffering for DoLoadCalTable.
+//       if CheckUSBSpeed(DeviceIndex) = usHigh then
+//         PacketWords := $200 div 2
+//       else
+//         PacketWords := $40 div 2
+//       ;
+//       PacketsMask := $FFFFFFFF * PacketWords;
+//       ChunkSize := PacketWords * 4;
+int SetCalWorker::LoadCalTable()
+{
+
+  bool FirstChunkDouble = true;
+  int L, L2;
+  int SRAMIndex = 0;
+  int Status;
+
+  aiousb_debug_print("Enter");
+
+  do
+  {
+    L2 = mCalTable.size() - SRAMIndex;
+
+    if (L2 > mChunkSize) L2 = mChunkSize;
+    if (L2 < mChunkSize)
+    {
+      L2 = mChunkSize;
+      SRAMIndex = 0x10000 - mChunkSize/2;
+    }
+    L = L2;
+
+    Status = AWU_GenericBulkOut(mDevice,
+                                0,
+                                &(mCalTable.data()[SRAMIndex]),
+                                sizeof(mCalTable[0]) * L2, &L);
+
+    if (Status != 0)
+    {
+      aiousb_library_err_print("GenericBulkOut returned %d", Status);
+      return -EIO;
+    }
+
+    Status = GenericVendorWrite(mDevice, 0xbb, SRAMIndex, L2, 0, nullptr);
+
+    if (Status != 0)
+    {
+      aiousb_library_err_print("GenericVendorWrite returned %d", Status);
+      return -EIO;
+    }
+
+    L = L / 2;
+    L = L & mPacketsMask;
+    SRAMIndex += L;
+    if (FirstChunkDouble)
+    {
+      FirstChunkDouble = false;
+      SRAMIndex = 0;
+    }
+  }while (SRAMIndex < 0x10000);
+
+  return 0;
+}
+
+int SetCalWorker::WriteCalToFile() //might get called twice
+{
+  if (mOutFileName == nullptr) return 0;
+  std::ofstream *OutStream;
+
+  if (mShouldAppend)
+  {
+    OutStream = new std::ofstream(mOutFileName, std::ios::binary | std::ios::app);
+  }
+  else
+  {
+    OutStream = new std::ofstream(mOutFileName, std::ios::binary);
+  }
+  mShouldAppend = true;
+
+  OutStream->write((const char *)mCalTable.data(), mCalTable.size() * sizeof(uint16_t));
+  OutStream->close();
+  delete OutStream;
+  return 0;
+
+}
+
+uint16_t SetCalWorker::GetHiRef()
+{
+  uint32_t DataSize, RetVal;
+  int status;
+
+  DataSize = sizeof(uint32_t);
+  status = GenericVendorRead(mDevice, 0xa2, 0x1df2, 0, DataSize, &RetVal);
+
+  if ((status != sizeof(RetVal)) ||
+      (RetVal == 0xffff))
+  {
+    return 0.0;
+  }
+  else
+  {
+    return RetVal;
+  }
+}
+
+double SetCalWorker::ConfigureAndBulkAcquire(std::vector<uint8_t> &Config)
+{
+  uint32_t L = mDevice->descriptor.config_bytes;
+  uint16_t *AdBuff;
+  uint32_t AdBuffLength;
+  int Status;
+  uint8_t StartChannel, EndChannel;
+  uint32_t AdTot;
+
+  Status = ADC_SetConfig(mDevice, Config.data(), &L);
+
+  if (Status != 0)
+  {
+    aiousb_library_err_print("ADC_Setconfig returned %d", Status);
+    return 0.0;
+  }
+
+  Status = aiousb_get_scan_inner(mDevice, Config.data(), &L, &AdBuff, &AdBuffLength, &StartChannel, &EndChannel, 0);
+
+  if (Status != 0)
+  {
+    aiousb_library_err_print("adc_get_scan_inner returned %d", Status);
+    return 0.0;
+  }
+
+  AdTot = 0;
+
+  for (int i = 0 ; i < Config[0x13] ; i++) AdTot += AdBuff[i];
+  return (double)AdTot / (double)(Config[0x13]); //TODO: Figure out why we are
+                      //dividing by one less than we should to get right answer
+
+
+
+}
+
+int SetCalWorker::SetCal()
+{
+  uint32_t ConfigSize = mDevice->descriptor.config_bytes;
+  std::vector<uint8_t> OldConfig(ConfigSize);
+  std::vector<uint8_t> NewConfig(ConfigSize);
+
+  double LoRef, HiRef, dRef, ThisRef, HiRead, LoRead, dRead;
+  uint8_t ProbeData;
+  int Status;
+
+  ADC_GetConfig(mDevice, OldConfig.data(), &ConfigSize);
+  std::fill(NewConfig.begin(), NewConfig.end(), 0);
+
+
+  Status = GenericVendorRead(mDevice,
+                              AUR_PROBE_CALFEATURE,
+                              0,
+                              0,
+                              sizeof(ProbeData),
+                              &ProbeData);
+
+  if (Status != sizeof(ProbeData)) return -EIO;
+
+  if (ProbeData != 0xbb) return -ENOTSUP;
+
+  if (!strcmp(":AUTO:", mCalFileName))
+  {
+    LoRef = LoRefRef;
+    HiRef = GetHiRef();
+    if ( 0 == HiRef) HiRef = HiRefRef;
+    dRef = HiRef - LoRef;
+
+    NewConfig[0x00] = 0x01;
+    NewConfig[0x10] = 0x05;
+
+    for (int i ; i < 2 ; i++)
+    {
+      ADC_SetConfig(mDevice, NewConfig.data(), &ConfigSize);
+
+      for (size_t i = 0 ; i < mCalTable.size() ; i++)
+      {
+        mCalTable[i] = i;
+      }
+      LoadCalTable();
+
+      NewConfig[0x11] = 0x04;
+      NewConfig[0x12] = 0x00;
+      NewConfig[0x13] = std::min(0xff, mChunkSize - 1);
+      ThisRef = HiRef;
+
+      if ( 0 == i ) ThisRef = 0.5 * (ThisRef + 0x10000);
+
+      NewConfig[0x10] |= 0x02; //cal low ref
+
+      HiRead = ConfigureAndBulkAcquire(NewConfig);
+
+      if (abs(HiRead - ThisRef) > 0x10000) return -EINVAL;
+
+      usleep(10000);
+
+      ThisRef = LoRef;
+
+      if (0 == i ) ThisRef = 0.5 * (ThisRef + 0x10000);
+
+      NewConfig[0x10] &=~0x02;
+      LoRead = ConfigureAndBulkAcquire(NewConfig);
+      if (abs(LoRead - ThisRef) > 0x100) return -EINVAL;
+
+      usleep(10000);
+
+      dRead = HiRead - LoRead;
+
+      for (int j = 0 ; j < 0x10000 ; j++)
+      {
+        double F, J;
+        F = (j - LoRead) / dRead;
+        F = LoRef + F * dRef;
+        if (0 == i) F = 0.5 * (F + 0x10000);
+        J = round(F);
+        if ( J <= 0)
+        {
+          J = 0;
+        }
+        else if (J >= 0xFFFF)
+        {
+          J = 0xFFFF;
+        }
+        mCalTable[j] = J;
+      }
+      LoadCalTable();
+
+      NewConfig[0x10] = 1;
+      NewConfig[0] = 1;
+
+      WriteCalToFile();
+
+    }
+  }
+  else if (!strcmp(":NORM:", mCalFileName))
+  {
+    LoRef = LoRefRef;
+    HiRef = GetHiRef();
+
+    if (0 == HiRef ) HiRef = HiRefRef;
+
+    dRef = HiRef - LoRef;
+    LoRead = 0x0042;
+    HiRead = 0xfe3f;
+    dRead = HiRead - LoRead;
+
+    for (int i = 0 ; i < 0x10000 ; i++)
+    {
+      double F, J;
+      F = (i - LoRead) / dRead;
+      F = LoRef +  F * dRef;
+      J = round(F);
+      if (J <= 0 ) J = 0;
+      else if (J >= 0xffff) J = 0xffff;
+      mCalTable[i] = J;
+    }
+
+    NewConfig[0x10] = 0x05;
+
+    for (int i = 0 ; i < 2 ; i++)
+    {
+      ADC_SetConfig(mDevice, NewConfig.data(), &ConfigSize);
+      LoadCalTable();
+      WriteCalToFile();
+      NewConfig[0x10] = 0x01;
+    }
+  }
+  else if (!(strcmp(":1TO1:", mCalFileName)) ||
+            !(strcmp(":NONE:", mCalFileName)))
+  {
+    for (size_t i = 0 ; i < mCalTable.size() ; i++)
+    {
+      mCalTable[i] = i;
+    }
+
+        NewConfig[0x10] = 0x05;
+
+    for (int i = 0 ; i < 2 ; i++)
+    {
+      ADC_SetConfig(mDevice, NewConfig.data(), &ConfigSize);
+      LoadCalTable();
+      WriteCalToFile();
+      NewConfig[0x10] = 0x01;
+    }
+  }
+  else if (mCalFileName[0] == ':') return -EINVAL;
+  else
+  {
+   std::ifstream  CalStream(mCalFileName, std::ios::binary | std::ios::in);
+   CalStream.seekg(std::ios::end);
+   if (CalStream.tellg() >= 0x20000)
+   {
+     CalStream.seekg(0);
+     NewConfig[0x10] = 0x05;
+     NewConfig[0x00] = 0x01;
+
+     for (int i = 0 ; i < 2 ; i++)
+     {
+       ADC_SetConfig(mDevice, NewConfig.data(), &ConfigSize);
+       CalStream.read((char *)mCalTable.data(), mCalTable.size() * sizeof(uint16_t));
+       LoadCalTable();
+       WriteCalToFile();
+       NewConfig[0x10] = 0x01;
+       NewConfig[0x00] = 0x00;
+     }
+   }
+   else if (CalStream.tellg() > 0x10000)
+   {
+     CalStream.seekg(0);
+     CalStream.read((char *)mCalTable.data(), mCalTable.size() * sizeof(uint16_t));
+     LoadCalTable();
+     WriteCalToFile();
+   }
+   CalStream.close();
+
+  }
+  ADC_SetConfig(mDevice, OldConfig.data(), &ConfigSize);
+  return 0;
+}
+
+int ADC_SetCal(aiousb_device_handle device, const char *CalFileName)
+{
+  return ADC_SetCalAndSave(device, CalFileName, nullptr);
+}
+
+int ADC_SetCalAndSave(aiousb_device_handle device, const char *CalFileName,
+                  const char *OutFileName)
+{
+  SetCalWorker Worker(device, CalFileName, OutFileName);
+  return Worker.SetCal();
+}
+
 int DAC_SetBoardRange (aiousb_device_handle device, uint32_t range_code)
 {
   uint8_t config_data[2] = {0};
@@ -3452,6 +3839,20 @@ int ADC_Range1(unsigned long device_index, uint32_t adc_channel,
                       adc_channel,
                       gain_code,
                       b_differential);
+}
+
+int ADC_SetCal(unsigned int device_index, const char *CalFileName)
+{
+  return ADC_SetCal(aiousb_handle_by_index_private(device_index),
+                      CalFileName);
+}
+
+int ADC_SetCalAndSave(unsigned int device_index, const char *CalFileName,
+                  const char *OutFileName)
+{
+  return ADC_SetCalAndSave(aiousb_handle_by_index_private(device_index),
+                        CalFileName,
+                        OutFileName);
 }
 
 
