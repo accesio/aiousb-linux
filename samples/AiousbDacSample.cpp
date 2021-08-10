@@ -27,23 +27,16 @@ int main (int argc, char **argv)
     exit (-1);
   }
 
-  std::cout << "Setting DAC range to unipolar." << std::endl;
-  AIOUSB::DAC_SetBoardRange(Device, 0);
+  std::cout << "Setting DAC range to unipolar, status: " << AIOUSB::DAC_SetBoardRange(Device, 0) << std::endl;
 
-  std::cout << "Setting 0 counts on channel 0 for 3 seconds" << std::endl;
-  AIOUSB::DAC_Direct(Device, 0, 0);
+  std::cout << "Setting 0 counts on channel 0 for 3 seconds, status: " << AIOUSB::DAC_Direct(Device, 0, 0)<< std::endl;
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-  std::cout << "Setting 0x8000 counts on channel 0x8000 for 3 seconds" << std::endl;
-  AIOUSB::DAC_Direct(Device, 0, 0x8000);
+  std::cout << "Setting 0x8000 counts on channel 0x8000 for 3 seconds, status: " <<  AIOUSB::DAC_Direct(Device, 0, 0x8000) << std::endl;;
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-  std::cout << "Setting 0xF000 counts on channel 0xF000 for 3 seconds" << std::endl;
-  AIOUSB::DAC_Direct(Device, 0, 0xF000);
+  std::cout << "Setting 0xF000 counts on channel 0xF000 for 3 seconds, status: " <<  AIOUSB::DAC_Direct(Device, 0, 0xF000) << std::endl;
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-
-
-
 
   return 0;
 }
