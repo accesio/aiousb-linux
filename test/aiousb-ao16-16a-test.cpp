@@ -7,6 +7,7 @@
 
 #define START_CHANNEL 0
 #define END_CHANNEL 15
+#define SLEEP_TIME 3
 
 AIOUSB::aiousb_device_handle Device;
 double Readings[16];
@@ -15,9 +16,9 @@ void DacDirectTest()
 {
   int status;
 
-  status = AIOUSB::DAC_SetBoardRange(Device, 1);
+  status = AIOUSB::DAC_SetBoardRange(Device, 2);
 
-  printf("DAC_SetBoardRange status = %d\n");
+  printf("DAC_SetBoardRange status = %d\n", status);
 
 
   status = AIOUSB::DAC_Direct(Device, 0, 0xffff);
@@ -29,9 +30,30 @@ void DacDirectTest()
   sleep(5);
 }
 
-void GetAndPrintScan()
+void DacMultiDirectTest()
 {
   int status;
+  uint16_t dac_data[32];
+  uint32_t data_count = 16;
+
+  status = AIOUSB::DAC_SetBoardRange(Device, 2);
+
+  printf("DAC_SetBoardRange status = %d\n", status);
+
+  for (int i = 0 ; i < 16 ; i++)
+  {
+    dac_data[i * 2] = i;
+    dac_data[i * 2 + 1] = 0xffff / (i + 1);
+  }
+
+  status = AIOUSB::DAC_MultiDirect(Device, dac_data, data_count);
+
+  printf("DAC_MultiDirect() status = %d\n", status);
+}
+
+void GetAndPrintScan()
+{
+  int status = 0;
   std::array<double, END_CHANNEL - START_CHANNEL + 1> Voltages;
   status = AIOUSB::ADC_SetScanLimits(Device, START_CHANNEL, END_CHANNEL);
 
@@ -65,29 +87,54 @@ void DioTest()
 
   printf("Setting DIO0 high\n");
   Status = AIOUSB::DIO_Write1(Device, 0, 1);
-  sleep(3);
+  sleep(SLEEP_TIME);
 
   printf("Setting DIO0 low\n");
   Status = AIOUSB::DIO_Write1(Device, 0, 0);
-  sleep(3);
+  sleep(SLEEP_TIME);
 
   printf("Setting DIO0-7 high\n");
-  AIOUSB::DIO_Write8(Device, 0, 0xf);
-  sleep(8);
+  AIOUSB::DIO_Write8(Device, 0, 0x80);
+  sleep(SLEEP_TIME);
 
   printf("Setting DIO0-7 low\n");
   AIOUSB::DIO_Write8(Device, 0, 0);
-  sleep(8);
+  sleep(SLEEP_TIME);
 
-  std::fill(DioData.begin(), DioData.end(), 0xff);
+  std::fill(DioData.begin(), DioData.end(), 0x00);
+  DioData[1] = 0x80;
   printf("setting DIO0-15 high\n");
   AIOUSB::DIO_WriteAll(Device, DioData.data());
-  sleep(8);
+  sleep(SLEEP_TIME);
 
   std::fill(DioData.begin(), DioData.end(), 0);
   printf("setting DIO0-15 low\n");
   AIOUSB::DIO_WriteAll(Device, DioData.data());
-  sleep(8);
+  sleep(SLEEP_TIME);
+
+  std::fill(OutMask.begin(), OutMask.end(), 0);
+  std::fill(DioData.begin(), DioData.end(), 0);
+
+  printf("Configuring DIO for input\n");
+
+  AIOUSB::DIO_Configure(Device, 0, OutMask.data(), DioData.data());
+
+  printf("Reading single bit\n");
+  AIOUSB::DIO_Read1(Device, 0, DioData.data());
+  printf("bit 0 = %d\n", DioData.data()[0] & 1);
+
+  printf("Reading byte\n");
+  AIOUSB::DIO_Read8(Device, 1, DioData.data());
+  printf("byte 1 = 0x%x\n", DioData.data()[0]);
+
+
+  AIOUSB::DIO_ReadAll(Device, DioData.data());
+
+  for (unsigned int i = 0 ; i < DioBytes ; i++)
+  {
+    printf("0x%X\t", DioData[i]);
+  }
+  printf("\n");
 
 }
 
@@ -104,17 +151,20 @@ int main (int argc, char **argv)
     std::cout << "Unable to open device" << std::endl;
     exit(-1);
   }
-  AIOUSB::ADC_SetCal(Device, ":NONE:");
+  //DacDirectTest();
 
-  GetAndPrintScan();
+  //DacMultiDirectTest();
+//  AIOUSB::ADC_SetCal(Device, ":NONE:");
 
-    AIOUSB::ADC_SetCal(Device, ":NORM:");
-
-  GetAndPrintScan();
-
-  AIOUSB::ADC_SetCalAndSave(Device, ":AUTO:", "outtest.bin");
-  GetAndPrintScan();
+//  GetAndPrintScan();
+//
+//    AIOUSB::ADC_SetCal(Device, ":NORM:");
+//
+//  GetAndPrintScan();
+//
+//  AIOUSB::ADC_SetCalAndSave(Device, ":AUTO:", "outtest.bin");
+//  GetAndPrintScan();
 
   DioTest();
-  DacDirectTest();
+  //DacDirectTest();
 }

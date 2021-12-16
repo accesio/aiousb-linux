@@ -49,3 +49,6 @@ target_link_libraries(aiousb-c-linkage-test stdc++)
 
 add_executable(aiousb-aio16-16f-test aiousb-aio16-16f-test.cpp)
 target_link_libraries(aiousb-aio16-16f-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
+
+add_executable(aiousb-ao16-16a-test aiousb-ao16-16a-test.cpp)
+target_link_libraries(aiousb-ao16-16a-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})

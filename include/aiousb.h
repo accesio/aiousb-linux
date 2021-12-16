@@ -176,6 +176,8 @@ int DAC_SetBoardRange (aiousb_device_handle device, uint32_t range_code);
 
 int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts);
 
+int DAC_MultiDirect(aiousb_device_handle device, void * dac_data, uint32_t data_count);
+
 int AbortPipe(aiousb_device_handle device);
 
 int ResetChip(aiousb_device_handle device);
@@ -323,6 +325,8 @@ int ADC_ResetFastScanV(unsigned long device_index);
 int DAC_SetBoardRange (unsigned long device_index, uint32_t range_code);
 
 int DAC_Direct(unsigned long device_index, uint32_t channel, uint16_t counts);
+
+int DAC_MultiDirect(unsigned long device_index, void * dac_data, uint32_t data_count);
 
 int AbortPipe(unsigned long device_index);
 

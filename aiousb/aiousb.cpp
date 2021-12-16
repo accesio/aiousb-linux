@@ -3422,13 +3422,12 @@ int DAC_SetBoardRange (aiousb_device_handle device, uint32_t range_code)
             {
               dac_data = 0; //Unipolor counts for zero volts
             }
-            //TODO: Implement dac direct
-            //status = DAC_Direct(device, 0, dac_data);
-            // if (status)
-            //   {
-            //     aiousb_library_err_print("status = %d", status);
-            //     return status;
-            //   }
+            status = DAC_Direct(device, 0, dac_data);
+            if (status)
+              {
+                aiousb_library_err_print("status = %d", status);
+                return status;
+              }
         }
       status = GenericVendorWrite(device, 0xb7, 0, 0, 0, nullptr);
       if (status)
@@ -3456,8 +3455,8 @@ int DAC_SetBoardRange (aiousb_device_handle device, uint32_t range_code)
 
 int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts)
 {
-  uint32_t dac_stream_data = 0;
-  double clock_hz = 0;
+  //uint32_t dac_stream_data = 0;
+  //double clock_hz = 0;
 
   if ( 0 == device->descriptor.imm_dacs)
     {
@@ -3474,10 +3473,10 @@ int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts)
 
   if (device->descriptor.b_dac_dio_stream)
     {
-      clock_hz = dac_dio_stream_imm_hz;
+      //clock_hz = dac_dio_stream_imm_hz;
       //TODO: Implement aiousb_dac_output_process
       //return aiousb_dac_output_process(device, clock_hz, 2, &counts);
-      return -EFAULT;
+      return -ENOSYS;
     }
   else
     {
@@ -3490,6 +3489,72 @@ int DAC_Direct(aiousb_device_handle device, uint32_t channel, uint16_t counts)
     }
 
 }
+
+int DAC_MultiDirect(aiousb_device_handle device,
+                    void * dac_data, uint32_t data_count)
+{
+  uint32_t max_channel = 0;
+  uint16_t *dac_data_ptr = (uint16_t *)dac_data;
+
+  if ( 0 == device->descriptor.imm_dacs)
+    {
+      return -EBADRQC;
+    }
+
+  //TODO: reference code checks a couple of state variables within the device
+  //structure here. bDACOpen and bDACClosing
+
+  if (0 == data_count) return 0;
+
+  for (unsigned int i = 0 ; i < data_count ; i++)
+    {
+      if (dac_data_ptr[i * 2] > max_channel)
+        {
+          max_channel = dac_data_ptr[i * 2];
+        }
+    }
+
+  if (max_channel > device->descriptor.imm_dacs) return -EINVAL;
+
+  if (device->descriptor.b_dac_dio_stream)
+    {
+      return -ENOSYS;
+    }
+  else
+    {
+      int DacBlocks = max_channel / 8 + 1;
+      size_t ContentSize = DacBlocks * 17;
+      uint8_t  *Content = new uint8_t[ContentSize];
+      uint16_t *ptr = (uint16_t *)(dac_data);
+      int status;
+
+
+      memset(Content, 0, ContentSize);
+
+      for (unsigned int i = 0 ; i < data_count; i++)
+      {
+        int Channel = ptr[i*2];
+        memcpy(&(Content[Channel * 2 + (Channel / 8) + 1]),
+                &(ptr[i * 2 + 1]),
+                sizeof(uint16_t));
+        Content[(Channel / 8) * 17] |= 1 << (Channel & 7);
+      }
+
+      status = GenericVendorWrite(device, AUR_DAC_IMMEDIATE, 0, 0, ContentSize, Content);
+
+      delete[] Content;
+
+      if (status == (int)ContentSize) status = 0;
+
+      return status;
+
+    }
+
+
+  return -EBADRQC;
+
+}
+
 
 int AbortPipe(aiousb_device_handle device)
 {
@@ -3889,6 +3954,27 @@ int ADC_ResetFastScanV(unsigned long device_index)
 {
   return ADC_ResetFastScanV(aiousb_handle_by_index_private(device_index));
 }
+
+int DAC_SetBoardRange (unsigned long device_index, uint32_t range_code)
+{
+  return DAC_SetBoardRange(aiousb_handle_by_index_private(device_index),
+                            range_code);
+}
+
+int DAC_Direct(unsigned long device_index, uint32_t channel, uint16_t counts)
+{
+  return DAC_Direct(aiousb_handle_by_index_private(device_index),
+                                                    channel,
+                                                    counts);
+}
+
+int DAC_MultiDirect(unsigned long device_index, void * dac_data, uint32_t data_count)
+{
+  return DAC_MultiDirect(aiousb_handle_by_index_private(device_index),
+                                                        dac_data,
+                                                        data_count);
+}
+
 
 
 int AbortPipe(unsigned long device_index)
