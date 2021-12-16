@@ -13,6 +13,14 @@ else ()
   target_compile_definitions (aiousb_shared PRIVATE AIOUSB_DEBUG=0)
 endif (AIOUSB_DEBUG)
 
+if (NO_HOTPLUG)
+  target_compile_definitions(aiousb PRIVATE NO_HOTPLUG=1)
+  target_compile_definitions(aiousb_shared PRIVATE NO_HOTPLUG=1)
+else()
+  target_compile_definitions(aiousb PRIVATE NO_HOTPLUG=0)
+  target_compile_definitions(aiousb_shared PRIVATE NO_HOTPLUG=0)
+endif(NO_HOTPLUG)
+
 ADD_CUSTOM_COMMAND(TARGET aiousb_shared POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E rename
                     $<TARGET_FILE:aiousb_shared>

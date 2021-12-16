@@ -12,7 +12,9 @@
 #include <pthread.h>
 #include <time.h>
 #include <dirent.h>
+#if NO_HOTPLUG != 1
 #include <libudev.h>
+#endif
 
 #include <fstream>
 
@@ -204,7 +206,7 @@ void check_removed ()
       }
   }
 }
-
+#if NO_HOTPLUG != 1
 void hotplug_monitor (int n)
 {
   struct udev* udev = udev_new();
@@ -261,6 +263,7 @@ void hotplug_monitor (int n)
         }
     }
 }
+#endif
 
 int aiousb_device_open (const char *fname, aiousb_device_handle *device)
 {
@@ -400,7 +403,9 @@ int AiousbInit()
     {
       exiting = false;
       atexit(&lib_exit);
+#if NO_HOTPLUG != 1
       hotplug_thread = std::thread(&hotplug_monitor, NULL);
+#endif
     }
     aiousb_init_complete = true;
     return 0;

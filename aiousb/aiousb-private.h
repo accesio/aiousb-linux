@@ -15,6 +15,10 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+#ifndef NO_HOTPLUG
+#define NO_HOTPLUG 0
+#endif
+
 namespace AIOUSB {
 
 struct pnp_data

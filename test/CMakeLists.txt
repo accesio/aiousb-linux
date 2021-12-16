@@ -6,7 +6,6 @@ target_link_libraries(bulk-abort-test pthread)
 
 add_executable(read-serial read-serial.c)
 
-set(AIOUSB_LIBS m pthread udev)
 
 add_executable(aiousb-test aiousb-test.cpp)
 target_link_libraries(aiousb-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
