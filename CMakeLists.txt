@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.0)
-set(CMAKE_CXX_STANDARD 11)
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+cmake_minimum_required(VERSION 2.8)
+
+add_compile_options(-std=c++11)
+
+
 project (AIOUSB)
 add_compile_options(-Wall)
 include(GNUInstallDirs)
