@@ -2143,6 +2143,8 @@ int aiousb_get_scan_inner_imm_adcs (aiousb_device_handle device,
     return status;
   }
 
+  status = 0;
+
   *start_channel = 0;
   *end_channel = device->descriptor.imm_adcs - 1;
 
@@ -2278,7 +2280,7 @@ int ADC_GetScanV(aiousb_device_handle device, double *data)
     {
       for (channel = start_channel ; channel <= end_channel ; channel++)
         {
-          range_code = config_buff[channel >> device->descriptor.range_shift];
+          range_code = config_buff[channel]  >> device->descriptor.range_shift;
           data[channel] = volts_from_counts(device,
                                       ad_buff[channel - start_channel],
                                       range_code);

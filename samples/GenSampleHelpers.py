@@ -8,6 +8,18 @@ import os
 
 from array import array
 
+def GenHelper (Name, ParamName, List):
+
+  print(str.format("int {0}(uint32_t {1})", Name, ParamName))
+  print("{");
+  print(str.format("\tswitch({0})", ParamName))
+  print("\t{")
+  for param, count in List:
+    print(str.format("\tcase {0}: return {1};", param, count))
+  print("\tdefault: return 0;")
+  print("\t};")
+  print("}")
+
 
 if __name__ == "__main__":
 
@@ -15,10 +27,12 @@ if __name__ == "__main__":
 
   CurrentPid = 0
   CurrentDacs = 0
-  CurrentAdcs = 0
+  CurrentAdcImm = 0
+  CurrentAdcChan = 0
 
   DacsList = list()
-  AdcsList = list()
+  AdcsImmList = list()
+  AdcMuxChanList = list()
 
   print (sys.argv[1])
 
@@ -28,17 +42,22 @@ if __name__ == "__main__":
       line = fp.readline()
     while line:
       if line.find("pid_loaded") != -1:
-        if CurrentAdcs != 0:
-          AdcsList.insert(0, (CurrentPid, CurrentAdcs))
-          CurrentAdcs = 0;
+        if CurrentAdcImm != 0:
+          AdcsImmList.insert(0, (CurrentPid, CurrentAdcImm))
+          CurrentAdcImm = 0;
         if CurrentDacs != 0:
           DacsList.insert(0, (CurrentPid, CurrentDacs))
           CurrentDacs = 0
+        if CurrentAdcChan != 0:
+          AdcMuxChanList.insert(0, (CurrentPid, CurrentAdcChan))
         CurrentPid = line.split()[2].strip(",")
       elif line.find("imm_dacs") != -1:
         CurrentDacs = int(line.split()[2].strip(","))
       elif line.find("imm_adcs") != -1:
-        CurrentAdcs = int(line.split()[2].strip(","))
+        CurrentAdcImm = int(line.split()[2].strip(","))
+      elif line.find("adc_mux_channels") != -1:
+        CurrentAdcChan = int(line.split()[2].strip(","))
+
       line = fp.readline()
 
   stdout_bak = sys.stdout;
@@ -54,25 +73,9 @@ if __name__ == "__main__":
   print("//always be backwards compatible.");
 
 
-  print("int GetNumAdcs(uint32_t Pid)")
-  print("{");
-  print("\tswitch(Pid)")
-  print("\t{")
-  for pid, count in AdcsList:
-    print(str.format("\tcase {0}: return {1};", pid, count))
-  print("\tdefault: return 0;")
-  print("\t};")
-  print("}")
-
-  print ("int GetNumDacs(uint32_t Pid)")
-  print ("{");
-  print ("\tswitch(Pid)")
-  print ("\t{")
-  for pid, count in DacsList:
-    print (str.format("\tcase {0}: return {1};", pid, count))
-  print("\tdefault:return 0;")
-  print("\t};")
-  print("}")
+  GenHelper("GetNumAdcsImm", "Pid", AdcsImmList)
+  GenHelper("GetNumDacs", "Pid", DacsList)
+  GenHelper("GetNumAdcMuxChan", "Pid", AdcMuxChanList)
 
   sys.stdout.close();
   sys.stdout = stdout_bak;

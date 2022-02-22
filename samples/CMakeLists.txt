@@ -23,3 +23,4 @@ target_link_libraries(AiousbIiroSample ${AIOUSB_LIBS})
 
 add_executable(AiousbAdcSample AiousbAdcSample.cpp)
 target_link_libraries(AiousbAdcSample ${AIOUSB_LIBS})
+add_dependencies(AiousbAdcSample sample_helpers)
