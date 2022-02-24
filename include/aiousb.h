@@ -45,6 +45,8 @@ int QueryDeviceInfo(aiousb_device_handle device,
                               uint32_t *pid, uint32_t *name_size, char *name,
                               uint32_t *dio_bytes, uint32_t *counters);
 
+int GetDeviceSerialNumber(aiousb_device_handle device, uint64_t *serial_number);
+
 int GenericVendorRead(aiousb_device_handle device,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data);
@@ -194,6 +196,8 @@ extern "C"
 int QueryDeviceInfo(unsigned long device_index,
                             uint32_t *pid, uint32_t *name_size, char *name,
                             uint32_t *dio_bytes, uint32_t *counters);
+
+int GetDeviceSerialNumber(unsigned long device_index, uint64_t *serial_number);
 
 int GenericVendorRead(unsigned long device_index,
             uint8_t request, uint16_t value, uint16_t index,

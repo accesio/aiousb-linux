@@ -526,6 +526,13 @@ int QueryDeviceInfo(aiousb_device_handle device,
   return 0;
 }
 
+int GetDeviceSerialNumber(aiousb_device_handle device, uint64_t *serial_number)
+{
+  int status;
+
+  return GenericVendorRead(device, 0xa2, 0x1df8, 0, sizeof(uint64_t), serial_number);
+}
+
 
 int GenericVendorRead(aiousb_device_handle device,
             uint8_t request, uint16_t value, uint16_t index,
@@ -3600,6 +3607,12 @@ int QueryDeviceInfo(unsigned long device_index,
                             name,
                             dio_bytes,
                             counters);
+}
+
+int GetDeviceSerialNumber(unsigned long device_index, uint64_t *serial_number)
+{
+  return GetDeviceSerialNumber(aiousb_handle_by_index_private(device_index),
+                                  serial_number);
 }
 
 int GenericVendorRead(unsigned long device_index,

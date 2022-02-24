@@ -40,6 +40,7 @@ int main (int argc, char **argv)
 {
   int Status;
   AIOUSB::aiousb_device_handle Device;
+  uint64_t SerialNum;
 
   std::cout << "ACCES AIOUSB Linux IIRO sample"<<std::endl;
 
@@ -59,6 +60,9 @@ int main (int argc, char **argv)
   uint32_t Pid;
 
   AIOUSB::QueryDeviceInfo(Device, &Pid, &NameSize, Name, nullptr, nullptr);
+  AIOUSB::GetDeviceSerialNumber(Device, &SerialNum);
+  std::cout << Name << " detected [" << std::hex << Pid << std::dec << "]" << std::endl;
+  std::cout << "Serial Number: " <<std::hex << SerialNum << std::dec << std::endl;
 
   std::cout << Name << " detected" << std::endl;
 

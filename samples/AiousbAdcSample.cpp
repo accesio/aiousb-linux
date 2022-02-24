@@ -21,6 +21,7 @@ int main (int argc, char **argv)
   AIOUSB::aiousb_device_handle Device;
   uint32_t Pid;
   int ChannelCount;
+  uint64_t SerialNum;
 
   std::cout<<"ACCES AIOUSB-Linux ADC sample"<<std::endl;
 
@@ -36,11 +37,13 @@ int main (int argc, char **argv)
     exit (-1);
   }
 
-  uint32_t nameSize = 255;
-  char name[nameSize];
+  uint32_t NameSize = 255;
+  char Name[NameSize];
 
-  AIOUSB::QueryDeviceInfo(Device, &Pid, &nameSize, name, nullptr, nullptr);
-  std::cout << name << " detected [" << std::hex << Pid << std::dec << "]" << std::endl;
+  AIOUSB::QueryDeviceInfo(Device, &Pid, &NameSize, Name, nullptr, nullptr);
+  AIOUSB::GetDeviceSerialNumber(Device, &SerialNum);
+  std::cout << Name << " detected [" << std::hex << Pid << std::dec << "]" << std::endl;
+  std::cout << "Serial Number: " <<std::hex << SerialNum << std::dec << std::endl;
 
   ChannelCount = GetNumAdcMuxChan(Pid);
   if (0 != ChannelCount) DoChanScan(Device, ChannelCount);

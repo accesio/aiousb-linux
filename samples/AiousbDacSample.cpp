@@ -19,6 +19,7 @@ int main (int argc, char **argv)
   uint32_t NameSize = 255;
   char Name[NameSize];
   int NumDacs;
+  uint64_t SerialNum;
 
   std::cout << "ACCES AIOUSB-Linux DAC sample" << std::endl;
 
@@ -35,7 +36,10 @@ int main (int argc, char **argv)
   }
 
   AIOUSB::QueryDeviceInfo(Device, &Pid, &NameSize, Name, nullptr, nullptr);
+  AIOUSB::GetDeviceSerialNumber(Device, &SerialNum);
   std::cout << Name << " detected [" << std::hex << Pid << std::dec << "]" << std::endl;
+  std::cout << "Serial Number: " <<std::hex << SerialNum << std::dec << std::endl;
+
 
   NumDacs = GetNumDacs(Pid);
 

@@ -18,6 +18,7 @@ int main (int argc, char **argv)
   uint32_t DioBytes;
   uint32_t Pid;
   bool PerBitControl = false;
+  uint64_t SerialNum;
 
   std::cout<<"ACCES AIOUSB-Linux DIO sample"<<std::endl;
 
@@ -33,20 +34,23 @@ int main (int argc, char **argv)
     exit (-1);
   }
 
-  uint32_t nameSize = 255;
-  char name[nameSize];
+  uint32_t NameSize = 255;
+  char Name[NameSize];
 
   // DIO bytes is something we can query from the aiousb library so we see how
   // many are available on this device.
-  AIOUSB::QueryDeviceInfo(Device, &Pid, &nameSize, name, &DioBytes, nullptr);
+  AIOUSB::QueryDeviceInfo(Device, &Pid, &NameSize, Name, &DioBytes, nullptr);
+  AIOUSB::GetDeviceSerialNumber(Device, &SerialNum);
+  std::cout << Name << " detected [" << std::hex << Pid << std::dec << "]" << std::endl;
+  std::cout << "Serial Number: " <<std::hex << SerialNum << std::dec << std::endl;
 
   if ( 0 == DioBytes )
   {
-    std::cout << name << " doesn't support DIO" << std::endl;
+    std::cout << Name << " doesn't support DIO" << std::endl;
     exit (-1);
   }
 
-  std::cout << name << " detected, with " << DioBytes << " digital bytes" << std::endl;
+  std::cout << Name << " detected, with " << DioBytes << " digital bytes" << std::endl;
 
   //Check if this device has direction control per bit.
   if (std::find(PIDS_WITH_PER_BIT.begin(), PIDS_WITH_PER_BIT.end(), Pid) != PIDS_WITH_PER_BIT.end())
