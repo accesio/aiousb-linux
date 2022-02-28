@@ -528,8 +528,6 @@ int QueryDeviceInfo(aiousb_device_handle device,
 
 int GetDeviceSerialNumber(aiousb_device_handle device, uint64_t *serial_number)
 {
-  int status;
-
   return GenericVendorRead(device, 0xa2, 0x1df8, 0, sizeof(uint64_t), serial_number);
 }
 
