@@ -5,10 +5,15 @@ as a linux kernel module and library.
 
 ## Install needed packages
 
+### Deb type
 ```bash
-apt install git cmake build-essential libudev-dev
-  ```
+apt install git cmake build-essential libudev-dev python3
+```
 
+### Red Hat type
+```bash
+yum install git cmake python3-devel libudev-devel
+```
 ## Obtaining the source
 
 ```bash

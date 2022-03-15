@@ -1,5 +1,7 @@
 include_directories(${AIOUSB_SOURCE_DIR}/include)
 
+find_package (Python3 COMPONENTS Interpreter Development)
+
 add_custom_target(
   sample_helpers ALL
   COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/GenSampleHelpers.py ${CMAKE_CURRENT_SOURCE_DIR}
