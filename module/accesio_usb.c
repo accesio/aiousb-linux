@@ -620,19 +620,6 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
     int bytes_remaining = 0;
     unsigned int pipe;
 
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
-    if (!access_ok(context->data, context->size))
-#else
-    if (!access_ok(context->read ? VERIFY_READ : VERIFY_WRITE, context->data, context->size))
-#endif
-    {
-        aio_driver_err_print("access_ok returned err");
-        return -EPERM;
-    }
-
-    aio_driver_dev_print("passed access_ok");
-
     bytes_remaining = copy_from_user(dev->dma_capable_buffer, context->data, context->size);
 
     if (bytes_remaining)
@@ -692,19 +679,6 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
     unsigned int endpoint;
     unsigned int pipe;
     int bytes_remaining;
-
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
-    if (!access_ok(context->data, context->size))
-#else
-    if (!access_ok(context->read ? VERIFY_READ : VERIFY_WRITE, context->data, context->size))
-#endif
-    {
-        aio_driver_err_print("access_ok returned err");
-        return -EPERM;
-    }
-
-    aio_driver_dev_print("passed access_ok");
 
     bytes_remaining = copy_from_user(dev->dma_capable_buffer, context->data, context->size);
 
