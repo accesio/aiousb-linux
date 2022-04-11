@@ -23,7 +23,13 @@ else()
   set (AIO_CFLAGS "-DAIO_DEBUG=0")
 endif (AIO_DEBUG)
 
+if (KDIR)
+Set( KERNEL_DIR ${KDIR} )
+else()
 Set( KERNEL_DIR "/lib/modules/${CMAKE_SYSTEM_VERSION}/build" )
+endif (KDIR)
+
+
 Set( KBUILD_CMD ${CMAKE_MAKE_PROGRAM}
                 -C ${KERNEL_DIR}
                 AIO_CFLAGS=${AIO_CFLAGS}
