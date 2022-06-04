@@ -750,7 +750,7 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
         {
             aio_driver_err_print("copy_to_user returned %d", bytes_remaining);
         }
-        put_user(dev->urb->actual_length, context->transferred);
+        put_user(dev->urb->actual_length, context.transferred);
 
         copy_to_user((void *)arg,
                         &context,
