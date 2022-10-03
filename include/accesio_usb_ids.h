@@ -1903,7 +1903,7 @@ static const struct acces_usb_device_descriptor acces_usb_device_table[] =
 {
     .pid_unloaded = 0x0076,
     .pid_loaded = 0x8076,
-    .name = 0,
+    .name = "usb_ao16_4a",
     .fw_fname = "USB_8070.hex",
     .counters = 0,
     .dio_bytes = 2,
