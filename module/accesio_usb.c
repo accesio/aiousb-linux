@@ -624,17 +624,17 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
                                     (void *)arg,
                                     sizeof(struct accesio_usb_control_transfer));
 
-    if (bytes_remaining)
-    {
+//    if (bytes_remaining)
+//    {
         aio_driver_err_print("copy_from_user returned %d\n", bytes_remaining);
-    }
+//    }
 
     bytes_remaining = copy_from_user(dev->dma_capable_buffer, context.data, context.size);
 
-    if (bytes_remaining)
-    {
+//    if (bytes_remaining)
+//    {
         aio_driver_err_print("copy_from_user returned %d\n", bytes_remaining);
-    }
+//    }
 
     aio_driver_dev_print("Calling control_msg");
 
@@ -665,10 +665,10 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
     {
         bytes_remaining = copy_to_user(context.data, dev->dma_capable_buffer, context.size);
 
-            if (bytes_remaining)
-            {
+//            if (bytes_remaining)
+//            {
                 aio_driver_err_print("copy_to_user returned %d\n", bytes_remaining);
-            }
+//            }
     }
 
     return status;
