@@ -31,6 +31,19 @@ sudo make install
 ```
 
 
+## Setting device permissions on module load
+By default the device file requires root permissions to access. To change the default permissions for the device pass `dev_mode` to the module as a parameter. The mode can be passed in octal similar to `chmod` command
+* To set using insmod
+```sh
+insmod accesio_usb.ko dev_mode=0666
+```
+* To set for boot
+  * Create a file /etc/modprobe.d/accesio-usb.conf
+  ```
+  options accesio_usb dev_mode=0666
+  ```
+
+
 # Using the library
 To use the library include aiousb.h in your program. The first call into the library must be `AiousbInit()`. All of the functions are documented in the [ACCES I/O USB API](https://accesio.com/MANUALS/USB%20Software%20Reference%20Manual.html)
 

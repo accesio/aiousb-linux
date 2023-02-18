@@ -88,6 +88,10 @@ static int accesio_major_num;
 static dev_t accesio_first_dev = MKDEV(ACCESIO_MAJOR,0);
 
 
+//The name of this variable is exposed to userspace via /etc/modprobe.d
+static int dev_mode = 0;
+module_param(dev_mode, int, 0);
+
 
 //TODO: Figure out if we should make the epd a pointer or a copy.
 struct accesio_usb_endpoint {
@@ -533,6 +537,12 @@ static int accesio_usb_find_endpoints(struct accesio_usb_device_info* dev)
 
 static char* accesio_usb_get_devnode(struct device* dev, umode_t* mode)
 {
+    //if our dev_mode isn't 0 then it's a value received from userspace
+    if (mode && (0 != dev_mode ))
+    {
+        *mode = dev_mode;
+        aio_driver_debug_print ("dev_mode = 0x%x", dev_mode);
+    }
     return kasprintf(GFP_KERNEL,
                      DRIVER_CLASS_NAME"/%s_%u",
                      dev_name(dev), MINOR(dev->devt));
