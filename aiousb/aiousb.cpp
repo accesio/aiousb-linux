@@ -372,7 +372,13 @@ int AiousbInit()
 
   if (aiousb_init_complete)
     {
+#if NO_HOTPLUG != 1
       return -EALREADY;
+#else
+      check_removed();
+      scan_devices();
+      return 0;
+#endif
     }
 
   dir = opendir(ACCES_USB_DEV_DIR);
