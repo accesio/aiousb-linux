@@ -50,9 +50,16 @@ To use the library include aiousb.h in your program. The first call into the lib
 
 The source code in the samples directory is intended as a guide. The source code in the test directory is not intended for general use.
 
-# Known issues
-## Hotplug support breaks Python
-Python support is limited, and in order to use it the cmake command must include -DNO_HOTPLUG when building the project. This means the devices that are detected during AiousbInit() will be what the library always thinks is there.
+## Using the library with NO_HOTPLUG
+It is possible to build the library without hotplug support by defining NO_HOTPLUG in the cmake command. This was done to address a known [Python issue](#hotplug-support-breaks-python)
 ```bash
 cmake -DNO_HOTPLUG=y ..
 ```
+When the library is built without hotplug support the behavior of calls to AiousbInit() after the first one will simulate a hotplug by checking for removed devices and then scanning for new ones. When the library is built with hotplug enabled (the default) then subsequent calls to AiousbInit() will return -EALREADY.
+
+
+# Known issues
+## Hotplug support breaks Python
+Python support is limited, and in order to use it the cmake command must include -DNO_HOTPLUG when building the project. For more information on using the library in this mode see [here](#using-the-library-with-no_hotplug).
+
+Attempting to use the library in Python when hotplug support is enabled result in a failure when attempting to load the library. The `ctypes.CDLL('./libaiousb.so')` call will cause the program to crash.
