@@ -16,6 +16,7 @@
 #include <libudev.h>
 #endif
 
+#include <array>
 #include <fstream>
 
 #include "aiousb.h"
