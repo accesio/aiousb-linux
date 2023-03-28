@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 #include "aiousb.h"
 
@@ -13,6 +14,7 @@
         do { printf ("%s:%d:%s(): \n" fmt, __FILE__, \
                                 __LINE__, __func__, ##__VA_ARGS__); } while (0)
 
+static bool terminating;
 
 void read_serial_num(AIOUSB::aiousb_device_handle device)
 {
@@ -50,11 +52,12 @@ void read_serial_num(unsigned long device_index)
 	}
 }
 
-
 int main(int argc, char **argv)
 {
 	int status;
+	uint32_t device_mask;
 
+#if NO_HOTPLUG != 1
 	status = AIOUSB::AiousbInit();
 
 	if (status != 0)
@@ -62,33 +65,44 @@ int main(int argc, char **argv)
 		printf("aiousb_init() failed: %d\n", status);
 		return -1;
 	}
+#endif
 
-	printf("press enter to continue...\n"); getchar();
+	device_mask = 0;
+	uint32_t pid ;
+	uint32_t name_size;
+	char name[64];
 
-	AIOUSB::aiousb_device_handle device;
-	if (argc != 2)
+	uint64_t serial_number;
+
+	while (!terminating)
 	{
-		printf("usage: aiousb-test <filename>\n");
-		return -1;
-	}
-
-	status = AIOUSB::DeviceHandleByPath(argv[1], &device);
-
-	if (status)
-	{
-		printf("Error opening device: %d\n", status);
-		return -1;
-	}
-
-  printf("press enter to continue...\n"); getchar();
-
-
-	read_serial_num(device);
-	printf("\n\n\n\n");
-	read_serial_num((unsigned long)0);
-
-  printf("press enter to continue...\n"); getchar();
-
+#if NO_HOTPLUG == 1
+		AIOUSB::AiousbInit();
+#endif
+		device_mask = AIOUSB::GetDevices();
+		printf("device_mask = 0x%x\n", device_mask);
+		for (int i = 0; i < 32 ; i++)
+		{
+			if ((device_mask >> i) % 2)
+			{
+				name_size = sizeof(name);
+				status = AIOUSB::QueryDeviceInfo(i, &pid, &name_size, name, nullptr, nullptr);
+				if (!status)
+				{
+					AIOUSB::GetDeviceSerialNumber(i, &serial_number);
+					printf("Device at index %d:\n", i);
+					printf("\tPID: 0x%x\n", pid);
+					printf("\tName: %s\n", name);
+					printf("\tSerial: 0x%llx\n", serial_number);
+				}
+				else
+				{
+					printf("Device index reported unavailable device at index %d", i);
+				}
+			}
+		}
+		printf("press enter to rescan or ctrl-c to exit...\n"); getchar();
+	};
 
 	return 0;
 }
