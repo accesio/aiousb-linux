@@ -124,7 +124,6 @@ static const uint8_t CUR_RAM_READ            = 0xA3;
 
 static const double dac_dio_stream_imm_hz = 1024*1024;
 
-#define AIOUSB_SEM "/aiousb"
 #define AIOUSB_MAX_PATH 269  /*It's usually less than 30. compiler complains if less than 269*/
 #define MAX_DEVICES 32   /*Maybe make this dynamic someday */
 
@@ -132,7 +131,6 @@ static const double dac_dio_stream_imm_hz = 1024*1024;
 static aiousb_device_handle aiousb_devices[MAX_DEVICES];
 static int aiousb_device_count;
 static int aiousb_init_complete;
-//static sem_t *sem;
 std::thread hotplug_thread;
 std::atomic<bool> exiting;
 int pipe_fds[2];
