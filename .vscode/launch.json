@@ -67,7 +67,7 @@
                 "type": "cppdbg",
                 "request": "launch",
                 "program": "${workspaceFolder}/build/test/hotplug-testing",
-                "args": ["/dev/accesio/usb_aio16_16f_3"],
+                "args": [],
                 "stopAtEntry": false,
                 "cwd": "${workspaceFolder}",
                 "environment": [],

@@ -125,11 +125,11 @@ static const uint8_t CUR_RAM_READ            = 0xA3;
 static const double dac_dio_stream_imm_hz = 1024*1024;
 
 #define AIOUSB_MAX_PATH 269  /*It's usually less than 30. compiler complains if less than 269*/
-#define MAX_DEVICES 32   /*Maybe make this dynamic someday */
+#define AIOUSB_MAX_DEVICES 32   /*Maybe make this dynamic someday */
 
 
-static aiousb_device_handle aiousb_devices[MAX_DEVICES];
-static int aiousb_device_count;
+static aiousb_device_handle aiousb_devices[AIOUSB_MAX_DEVICES];
+static pthread_mutex_t aiousb_devices_lock;
 static int aiousb_init_complete;
 std::thread hotplug_thread;
 std::atomic<bool> exiting;
@@ -146,6 +146,23 @@ void lib_exit( void )
   hotplug_thread.join();
 }
 
+int aiousb_device_present (int device_index)
+{
+  if (aiousb_devices[device_index] == NULL) return 0;
+  return (!(aiousb_devices[device_index]->fd == -1));
+}
+
+int aiousb_get_available_device_index()
+{
+  int device_index = 0;
+  while (device_index < AIOUSB_MAX_DEVICES && aiousb_device_present(device_index) ) device_index++;
+  if (AIOUSB_MAX_DEVICES == device_index)
+  {
+    aiousb_library_err_print("No device indexes available\n");
+  }
+  return device_index;
+}
+
 void scan_devices()
 {
   //scan the directory for names
@@ -155,7 +172,8 @@ void scan_devices()
 
   if (dir == nullptr) return;
 
-  while ((entry = readdir(dir)))
+   pthread_mutex_lock(&aiousb_devices_lock);
+   while ((entry = readdir(dir)))
     {
       if (strstr(entry->d_name, "usb"))
         {
@@ -163,9 +181,9 @@ void scan_devices()
           sprintf(fname, ACCES_USB_DEV_DIR"%s", entry->d_name);
           //for each name check if there's already an entry with
           //that name and a valid file descriptor
-          for (int i = 0; i < aiousb_device_count; i++)
+          for (int i = 0; i < AIOUSB_MAX_DEVICES; i++)
           {
-            if ((aiousb_devices[i]->fd != -1)  && (!strcmp(fname, aiousb_devices[i]->dev_path)))
+            if ((aiousb_device_present(i))  && (!strcmp(fname, aiousb_devices[i]->dev_path)))
               {
                 match = true;
               }
@@ -173,23 +191,32 @@ void scan_devices()
           if (!match)
           {
             //if no entry exist open device
-            if (aiousb_device_open(fname, &aiousb_devices[aiousb_device_count]))
+            int device_index = aiousb_get_available_device_index();
+            if (device_index == AIOUSB_MAX_DEVICES)
+            {
+              aiousb_library_err_print("No available index. Ignoring device");
+              continue; //Could break here, but if this ever happens I think we
+                        //want to know how many devices it thinks are on the system
+            }
+            if (aiousb_device_open(fname, &aiousb_devices[device_index]))
               {
                 continue;
               }
-            aiousb_devices[aiousb_device_count]->dev_path = (char *)malloc(strlen(fname) + 1);
-            strcpy(aiousb_devices[aiousb_device_count]->dev_path, fname);
-            aiousb_device_count++;
+            aiousb_devices[device_index]->dev_path = (char *)malloc(strlen(fname) + 1);
+            strcpy(aiousb_devices[device_index]->dev_path, fname);
           }
         }
     };
+    pthread_mutex_unlock(&aiousb_devices_lock);
 }
 
 void check_removed ()
 {
-  for (int i = 0 ; i < aiousb_device_count ; i++)
+  aiousb_debug_print(">>>");
+  pthread_mutex_lock(&aiousb_devices_lock);
+  for (int i = 0 ; i < AIOUSB_MAX_DEVICES ; i++)
   {
-    if (aiousb_devices[i]->fd == -1) continue;
+    if (!aiousb_device_present(i)) continue;
 
     struct stat fstat;
     int fstat_status;
@@ -204,6 +231,7 @@ void check_removed ()
         aiousb_devices[i]->fd = -1;
       }
   }
+  pthread_mutex_unlock(&aiousb_devices_lock);
 }
 #if NO_HOTPLUG != 1
 void hotplug_monitor (int n)
@@ -241,6 +269,8 @@ void hotplug_monitor (int n)
         const char* IdVendor = udev_device_get_sysattr_value(dev, "idVendor");
         const char* idProduct = udev_device_get_sysattr_value(dev, "idProduct");
         const char* Action = udev_device_get_action(dev);
+
+        aiousb_debug_print("Action = %s\n", Action);
 
         if (!strcmp(Action, "remove"))
         {
@@ -380,25 +410,36 @@ int AiousbInit()
 #endif
     }
 
+  pthread_mutex_init(&aiousb_devices_lock, NULL);
+
   dir = opendir(ACCES_USB_DEV_DIR);
 
 
   if (dir != nullptr)
   {
+    pthread_mutex_lock(&aiousb_devices_lock);
     while ((entry = readdir(dir)))
       {
         if (strstr(entry->d_name, "usb"))
           {
+            int device_index;
             sprintf(fname, ACCES_USB_DEV_DIR"%s", entry->d_name);
-            if (aiousb_device_open(fname, &aiousb_devices[aiousb_device_count]))
+            device_index = aiousb_get_available_device_index();
+            if (device_index == AIOUSB_MAX_DEVICES)
+            {
+              aiousb_library_err_print("No available index. Ignoring device");
+              continue; //Could break here, but if this ever happens I think we
+                        //want to know how many devices it thinks are on the system
+            }
+            if (aiousb_device_open(fname, &aiousb_devices[device_index]))
               {
                 continue;
               }
-            aiousb_devices[aiousb_device_count]->dev_path = (char *)malloc(strlen(fname) + 1);
-            strcpy(aiousb_devices[aiousb_device_count]->dev_path, fname);
-            aiousb_device_count++;
+            aiousb_devices[device_index]->dev_path = (char *)malloc(strlen(fname) + 1);
+            strcpy(aiousb_devices[device_index]->dev_path, fname);
           }
       }
+      pthread_mutex_unlock(&aiousb_devices_lock);
   }
     if(pipe(pipe_fds))
     {
@@ -437,15 +478,17 @@ int DeviceHandleByPath (const char *fname, aiousb_device_handle *device)
 
   if (!aiousb_init_complete) return -ENAVAIL;
 
-  for ( i = 0 ; i < aiousb_device_count ; i++)
+  pthread_mutex_lock(&aiousb_devices_lock);
+  for ( i = 0 ; i < AIOUSB_MAX_DEVICES ; i++)
   {
-    if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_devices[i]->fd != -1)
+    if (aiousb_device_present(i) && !strcmp(fname, aiousb_devices[i]->dev_path))
     {
       *device = aiousb_devices[i];
       ret_val = 0;
       break;
     }
   }
+  pthread_mutex_unlock(&aiousb_devices_lock);
   return ret_val;
 }
 
@@ -453,15 +496,34 @@ aiousb_device_handle aiousb_handle_by_index_private(unsigned long device_index)
 {
   aiousb_debug_print("Enter");
 
+
   if (device_index == diOnly)
   {
-    return aiousb_device_count == 1 ? aiousb_devices[0] : NULL;
+    int device_count = 0;
+    int device_index = 0;
+    pthread_mutex_lock(&aiousb_devices_lock);
+    for (int i = 0 ; i < AIOUSB_MAX_DEVICES ; i++)
+    {
+      if (aiousb_device_present(i))
+      {
+        device_count++;
+        device_index = i;
+      }
+      if (device_count > 1) break;
+    }
+    pthread_mutex_unlock(&aiousb_devices_lock);
+    return (1 == device_count) ? aiousb_devices[device_index] : NULL;
   }
   if (device_index == diFirst)
   {
-    return aiousb_devices[0];
+    int device_index = 0;
+    do
+    {
+      if (aiousb_device_present(device_index)) return aiousb_devices[device_index];
+      device_index++;
+    } while (device_index < AIOUSB_MAX_DEVICES);
+    return NULL;
   }
-
   return aiousb_devices[device_index];
 }
 
@@ -492,8 +554,8 @@ int DeviceIndexByPath (const char *fname, unsigned long *device_index)
 
   if (!aiousb_init_complete) return -ENAVAIL;
 
-
-  for ( i = 0 ; i < aiousb_device_count ; i++)
+  pthread_mutex_lock(&aiousb_devices_lock);
+  for ( i = 0 ; i <AIOUSB_MAX_DEVICES ; i++)
   {
     if (!strcmp(fname, aiousb_devices[i]->dev_path) && aiousb_devices[i]->fd != -1)
     {
@@ -502,6 +564,7 @@ int DeviceIndexByPath (const char *fname, unsigned long *device_index)
       break;
     }
   }
+  pthread_mutex_unlock(&aiousb_devices_lock);
   return ret_val;
 }
 
@@ -510,11 +573,12 @@ uint32_t GetDevices()
   uint32_t retval = 0;
 
   if (!aiousb_init_complete) return -ENAVAIL;
-
-  for (int i = 0 ; i < aiousb_device_count ; i++)
+  pthread_mutex_lock(&aiousb_devices_lock);
+  for (int i = 0 ; i < AIOUSB_MAX_DEVICES ; i++)
   {
-    if (aiousb_devices[i]->fd != -1) retval |= 1 << i;
+    if (aiousb_device_present(i)) retval |= 1 << i;
   }
+  pthread_mutex_unlock(&aiousb_devices_lock);
 
   return retval;
 }
@@ -523,12 +587,23 @@ int QueryDeviceInfo(aiousb_device_handle device,
                               uint32_t *pid, uint32_t *name_size, char *name,
                               uint32_t *dio_bytes, uint32_t *counters)
 {
-  if (pid != nullptr) *pid = device->descriptor.pid_loaded;
-  //TODO: Make the name copy match description in manaul. ie set name_size to actual length
-  if ((name_size != nullptr) && (name != nullptr)) strncpy(name, device->descriptor.name, *name_size);
-  if (dio_bytes != nullptr) *dio_bytes = device->descriptor.dio_bytes;
-  if (counters != nullptr) *counters = device->descriptor.counters;
-  return 0;
+  unsigned long device_index = 0;
+
+  if(!(DeviceIndexByPath(device->dev_path, &device_index)) &&
+    (aiousb_device_present(device_index)))
+  {
+
+      if (pid != nullptr) *pid = device->descriptor.pid_loaded;
+      //TODO: Make the name copy match description in manual. ie set name_size to actual length
+      if ((name_size != nullptr) && (name != nullptr)) strncpy(name, device->descriptor.name, *name_size);
+      if (dio_bytes != nullptr) *dio_bytes = device->descriptor.dio_bytes;
+      if (counters != nullptr) *counters = device->descriptor.counters;
+      return 0;
+  }
+  else
+  {
+    return -ENODEV;
+  }
 }
 
 int GetDeviceSerialNumber(aiousb_device_handle device, uint64_t *serial_number)
