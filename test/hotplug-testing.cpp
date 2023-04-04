@@ -52,17 +52,12 @@ void read_serial_num(unsigned long device_index)
 	}
 }
 
-//void sigint_handler(int sig)
-//{
-//	printf("SIGINT\n");
-//	exit(0);
-//}
-
 int main(int argc, char **argv)
 {
 	int status;
 	uint32_t device_mask;
 
+#if NO_HOTPLUG != 1
 	status = AIOUSB::AiousbInit();
 
 	if (status != 0)
@@ -70,8 +65,7 @@ int main(int argc, char **argv)
 		printf("aiousb_init() failed: %d\n", status);
 		return -1;
 	}
-
-//	signal(SIGINT, sigint_handler);
+#endif
 
 	device_mask = 0;
 	uint32_t pid ;
@@ -82,6 +76,9 @@ int main(int argc, char **argv)
 
 	while (!terminating)
 	{
+#if NO_HOTPLUG == 1
+		AIOUSB::AiousbInit();
+#endif
 		device_mask = AIOUSB::GetDevices();
 		printf("device_mask = 0x%x\n", device_mask);
 		for (int i = 0; i < 32 ; i++)

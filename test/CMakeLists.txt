@@ -35,6 +35,11 @@ add_executable(aiousb-adc-getfastscanv-test aiousb-adc-getfastscanv-test.cpp)
 target_link_libraries(aiousb-adc-getfastscanv-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
 
 add_executable(hotplug-testing hotplug-testing.cpp)
+if (NO_HOTPLUG)
+  target_compile_definitions(hotplug-testing PRIVATE NO_HOTPLUG=1)
+else()
+  target_compile_definitions(hotplug-testing PRIVATE NO_HOTPLUG=0)
+endif(NO_HOTPLUG)
 target_link_libraries(hotplug-testing ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
 
 add_executable(aiousb-eeprom-test aiousb-eeprom-test.cpp)
