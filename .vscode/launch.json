@@ -107,7 +107,8 @@
                         "type": "python",
                         "request": "launch",
                         "program": "${file}",
-                        "console": "integratedTerminal"
+                        "console": "integratedTerminal",
+                        "cwd": "${workspaceFolder}/test"
                 },
                 {
                         "name": "(gdb) Launch aiousb-adc",

@@ -143,7 +143,9 @@ void lib_exit( void )
 {
   exiting = true;
   write(pipe_fds[1], "exit", strlen("exit"));
+#if NO_HOTPLUG != 1
   hotplug_thread.join();
+#endif
 }
 
 int aiousb_device_present (int device_index)
