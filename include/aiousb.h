@@ -152,7 +152,7 @@ int ADC_GetConfig(aiousb_device_handle device, uint8_t *config_buff,
                 uint32_t *config_size);
 
 int ADC_RangeAll(aiousb_device_handle device, uint8_t *gain_codes,
-                uint32_t *b_differential);
+                uint32_t b_differential);
 
 int ADC_Range1(aiousb_device_handle device, uint32_t adc_channel,
                 uint8_t gain_code, uint32_t b_differential);
@@ -304,7 +304,7 @@ int ADC_GetConfig(unsigned long device_index, uint8_t *config_buff,
                 uint32_t *config_size);
 
 int ADC_RangeAll(unsigned long device_index, uint8_t *gain_codes,
-                uint32_t *b_differential);
+                uint32_t b_differential);
 
 int ADC_Range1(unsigned long device_index, uint32_t adc_channel,
                 uint8_t gain_code, uint32_t b_differential);

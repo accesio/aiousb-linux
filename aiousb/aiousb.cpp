@@ -2928,7 +2928,7 @@ int ADC_ResetFastScanV(aiousb_device_handle device)
 }
 
 int ADC_RangeAll(aiousb_device_handle device, uint8_t *gain_codes,
-                uint32_t *b_differential)
+                uint32_t b_differential)
 {
   int status;
 
@@ -3990,7 +3990,7 @@ int ADC_GetConfig(unsigned long device_index, uint8_t *config_buff,
 }
 
 int ADC_RangeAll(unsigned long device_index, uint8_t *gain_codes,
-                uint32_t *b_differential)
+                uint32_t b_differential)
 {
   return  ADC_RangeAll(aiousb_handle_by_index_private(device_index),
                       gain_codes,
