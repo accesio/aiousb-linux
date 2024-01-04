@@ -3320,7 +3320,7 @@ int SetCalWorker::SetCal()
     NewConfig[0x00] = 0x01;
     NewConfig[0x10] = 0x05;
 
-    for (int i ; i < 2 ; i++)
+    for (int i = 0 ; i < 2 ; i++)
     {
       ADC_SetConfig(mDevice, NewConfig.data(), &ConfigSize);
 
