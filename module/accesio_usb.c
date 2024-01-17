@@ -137,7 +137,11 @@ struct accesio_usb_device_info {
 #define DRIVER_DESC "ACCES I/O Products, Inc. USB driver"
 #define DRIVER_LICENSE "Dual MIT/GPL"
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
 static char* accesio_usb_get_devnode(struct device* dev, umode_t* mode);
+#else
+static char* accesio_usb_get_devnode(const struct device* dev, umode_t* mode);
+#endif
 static int accesio_usb_probe(struct usb_interface* interface, const struct usb_device_id* id);
 static void accesio_usb_disconnect(struct usb_interface* interface);
 static void accesio_usb_draw_down(struct accesio_usb_device_info* dev);
@@ -534,8 +538,11 @@ static int accesio_usb_find_endpoints(struct accesio_usb_device_info* dev)
     }
     return 0;
 }
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
 static char* accesio_usb_get_devnode(struct device* dev, umode_t* mode)
+#else
+static char* accesio_usb_get_devnode(const struct device* dev, umode_t* mode)
+#endif
 {
     //if our dev_mode isn't 0 then it's a value received from userspace
     if (mode && (0 != dev_mode ))
