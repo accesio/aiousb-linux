@@ -65,6 +65,6 @@ private:
   std::queue<T> q;
   mutable std::mutex m;
   std::condition_variable c;
-  bool stop;
+  volatile bool stop;
 };
 #endif
