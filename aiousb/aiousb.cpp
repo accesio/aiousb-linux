@@ -2506,54 +2506,7 @@ int aiousb_adc_bulk_continuous_start_inner (aiousb_device_handle device,
   return 0;
 
 
-//   //initialize buf worker
-//   device->adc_cont_buff_worker_context.adc_cont_acq_worker_context = &device->adc_cont_acq_worker_context;
-//   device->adc_cont_buff_worker_context.bytes_per_buff = buff_size;
-//   device->adc_cont_buff_worker_context.callback = callback;
-//   device->adc_cont_buff_worker_context.callback_context = context;
-//   pthread_mutex_init(&device->adc_cont_buff_worker_context.buff_mutex, NULL);
-//   sem_init(&device->adc_cont_buff_worker_context.kill_sem, 0, 0);
-//   sem_init(&device->adc_cont_buff_worker_context.blank_buf_sem, 0, base_buff_count);
-//   sem_init(&device->adc_cont_buff_worker_context.data_buf_sem, 0, 0);
-//   device->adc_cont_buff_worker_context.buf_buf =
-//     (adc_continuous_buffer_handle *) malloc(sizeof(adc_continuous_buffer) * base_buff_count);
 
-
-
-//   //initialize cont_acq_worker
-//   device->adc_cont_acq_worker_context.adc_cont_buff_worker_context = &device->adc_cont_buff_worker_context;
-//   pthread_cond_init(&device->adc_cont_acq_worker_context.start_cond, NULL);
-//   pthread_mutex_init(&device->adc_cont_acq_worker_context.start_cond_mutex, NULL);
-//   device->adc_cont_acq_worker_context.device = device;
-//   device->adc_cont_acq_worker_context.pipe_index = 0;
-//   if (device->descriptor.b_adc_dio_stream)
-//     {
-//       device->adc_cont_acq_worker_context.bcs_style = bcs_dio;
-//       device->adc_cont_acq_worker_context.b_counter_control = 0;
-//       if (hertz == NULL)
-//         {
-//           hertz = &device->descriptor.root_clock;
-//         }
-//     }
-//   else
-//     {
-//       device->adc_cont_acq_worker_context.bcs_style = bcs_adc;
-//       if (hertz == NULL)
-//         {
-//           device->adc_cont_acq_worker_context.b_counter_control = 0;
-//         }
-//       else
-//         {
-//           device->adc_cont_acq_worker_context.b_counter_control = 1;
-// //TODO: CalcHzDivisors
-//         }
-//     }
-
-//     pthread_create(&device->adc_cont_acq_worker, NULL, adc_cont_buff_worker_execute, &device->adc_cont_acq_worker_context);
-//     pthread_create(&device->adc_cont_buff_worker, NULL, adc_cont_buff_worker_execute, &device->adc_cont_buff_worker_context);
-
-//     pthread_join(device->adc_cont_acq_worker, NULL);
-//     pthread_join(device->adc_cont_buff_worker, NULL);
 
 }
 

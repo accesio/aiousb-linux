@@ -51,12 +51,6 @@ struct aiousb_device
   //thread for getscan functions
   pthread_t adc_worker;
   struct adc_worker_context adc_worker_context;
-  //thread for continuous acquisition
-  pthread_t adc_cont_buff_worker;
-  struct adc_cont_buff_worker_context adc_cont_buff_worker_context;
-  //thread for continuous acquisition
-  pthread_t adc_cont_acq_worker;
-  struct adc_cont_acq_worker_context adc_cont_acq_worker_context;
   char *dev_path;
   ContinuousAdcWorker *ContAdc;
   //for fast scan
