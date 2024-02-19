@@ -2698,6 +2698,7 @@ int ADC_InitFastScanV(aiousb_device_handle device)
   if (device->config_buff_bak == nullptr)
   {
     device->config_buff_bak = new uint8_t[device->descriptor.config_bytes];
+    device->config_size = device->descriptor.config_bytes;
   }
 
   if (device->config_fast == nullptr)
@@ -2705,10 +2706,15 @@ int ADC_InitFastScanV(aiousb_device_handle device)
     device->config_fast = new uint8_t[device->descriptor.config_bytes];
   }
 
-  ADC_GetConfig(device,
+  status = ADC_GetConfig(device,
                     device->config_buff_bak,
                     &device->config_size);
 
+  if (status)
+  {
+    aiousb_library_err_print("ADC_GetConfig failed: %d", status);
+    return status;
+  }
 
   memcpy(device->config_fast, device->config_buff_bak, 0x10);
   device->config_fast[0x11] = 0x4;
