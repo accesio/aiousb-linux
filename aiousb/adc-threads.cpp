@@ -136,8 +136,7 @@ ContinuousBufferManager::~ContinuousBufferManager()
       Current = mEmptyBuffers->tryDequeue();
       if (Current != NULL )
       {
-        //Sometimes this causes a segfault for double free
-        //delete[] Current->data;
+        delete[] Current->data;
         delete Current;
       }
     }while (Current != NULL);
@@ -194,6 +193,11 @@ void ContinuousBufferManager::DataBufferGet(uint16_t **Buff, uint32_t *Used)
     *Used = Current->used;
     delete Current;
   }
+  else
+  {
+    *Buff = nullptr;
+    *Used = 0;
+  }
 }
 
 void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used)
@@ -224,6 +228,8 @@ ContinuousAdcWorker::~ContinuousAdcWorker()
 {
   if (!mTerminated) Terminate();
   delete mBuffManager;
+  delete mCaptureThread;
+  delete mCallbackThread;
 }
 
 int ContinuousAdcWorker::Execute()
@@ -358,6 +364,7 @@ void ContinuousAdcWorker::ExecuteCallback ()
       mCallback(buff, used, 0, mContext);
 
       mBuffManager->EmptyBufferPut(buff);
+      buff = nullptr;
     }
   }
   sleep(1);

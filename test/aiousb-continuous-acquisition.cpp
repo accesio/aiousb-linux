@@ -103,7 +103,7 @@ status = AIOUSB::ADC_SetOversample(device, OVERSAMPLE);
   }
   else
   {
-    sleep(6);
+    sleep(600);
   }
 
   AIOUSB::ADC_BulkContinuousEnd(device);
