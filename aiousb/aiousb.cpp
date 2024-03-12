@@ -2060,7 +2060,7 @@ ERR_OUT:
     {
       if (*ad_buff != NULL)
         {
-          free(ad_buff);
+          free(*ad_buff);
         }
     }
 
