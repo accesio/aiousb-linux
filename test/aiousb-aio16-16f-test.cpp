@@ -17,7 +17,7 @@ void DacDirectTest()
 
   status = AIOUSB::DAC_SetBoardRange(Device, 1);
 
-  printf("DAC_SetBoardRange status = %d\n");
+  printf("DAC_SetBoardRange status = %d\n", status);
 
 
   status = AIOUSB::DAC_Direct(Device, 0, 0xffff);

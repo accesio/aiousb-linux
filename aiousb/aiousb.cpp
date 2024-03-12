@@ -3212,7 +3212,7 @@ uint16_t SetCalWorker::GetHiRef()
 double SetCalWorker::ConfigureAndBulkAcquire(std::vector<uint8_t> &Config)
 {
   uint32_t L = mDevice->descriptor.config_bytes;
-  uint16_t *AdBuff;
+  uint16_t *AdBuff = nullptr;
   uint32_t AdBuffLength;
   int Status;
   uint8_t StartChannel, EndChannel;
@@ -3231,12 +3231,17 @@ double SetCalWorker::ConfigureAndBulkAcquire(std::vector<uint8_t> &Config)
   if (Status != 0)
   {
     aiousb_library_err_print("adc_get_scan_inner returned %d", Status);
+    if (AdBuff != nullptr)
+    {
+      free(AdBuff);
+    }
     return 0.0;
   }
 
   AdTot = 0;
 
   for (int i = 0 ; i < Config[0x13] ; i++) AdTot += AdBuff[i];
+  free(AdBuff);
   return (double)AdTot / (double)(Config[0x13]); //TODO: Figure out why we are
                       //dividing by one less than we should to get right answer
 
