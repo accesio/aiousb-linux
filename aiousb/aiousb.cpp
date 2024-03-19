@@ -180,7 +180,7 @@ void scan_devices()
       if (strstr(entry->d_name, "usb"))
         {
           bool match = false;
-          sprintf(fname, ACCES_USB_DEV_DIR"%s", entry->d_name);
+          snprintf(fname, sizeof(fname), ACCES_USB_DEV_DIR"%s", entry->d_name);
           //for each name check if there's already an entry with
           //that name and a valid file descriptor
           for (int i = 0; i < AIOUSB_MAX_DEVICES; i++)
@@ -425,7 +425,7 @@ int AiousbInit()
         if (strstr(entry->d_name, "usb"))
           {
             int device_index;
-            sprintf(fname, ACCES_USB_DEV_DIR"%s", entry->d_name);
+            snprintf(fname, sizeof(fname), ACCES_USB_DEV_DIR"%s", entry->d_name);
             device_index = aiousb_get_available_device_index();
             if (device_index == AIOUSB_MAX_DEVICES)
             {
@@ -1926,28 +1926,7 @@ int aiousb_get_scan_inner_adc_bulk(aiousb_device_handle device, uint8_t *config_
 
   aiousb_debug_print("Enter");
 
-  {
-    //TODO: DEBUG CODE THAT SHOULD BE REMOVED
-    char dbg_string[1024] = {0};
-    for (unsigned int i = 0; i < *config_size ; i++)
-    {
-      sprintf(dbg_string + strlen(dbg_string), "0x%x = 0x%x\n", i, config_buff[i]);
-    }
-    aiousb_debug_print("%s", dbg_string);
-  }
-
-
   status = ADC_GetConfig(device, config_buff, config_size);
-
-    {
-      //TODO: DEBUG CODE THAT SHOULD BE REMOVED
-    char dbg_string[1024] = {0};
-    for (unsigned int i = 0; i < *config_size ; i++)
-    {
-      sprintf(dbg_string + strlen(dbg_string), "0x%x = 0x%x\n", i, config_buff[i]);
-    }
-    aiousb_debug_print("%s", dbg_string);
-  }
 
   if (status)
     {
