@@ -33,14 +33,14 @@ class ContinuousBufferManager
     ~ContinuousBufferManager();
 
     //get or create empty buffer
-    uint16_t* EmptyBufferGet();
+    uint16_t* EmptyBufferGet(uint32_t *created);
     //store empty buffer
     void EmptyBufferPut(uint16_t *Buff);
 
     //get data buffer. wait if there isn't one
-    void DataBufferGet(uint16_t **Buff, uint32_t *Used);
+    void DataBufferGet(uint16_t **Buff, uint32_t *Used, uint32_t *Flags);
     //store data buffer
-    void DataBufferPut(uint16_t *Buff, uint32_t Used);
+    void DataBufferPut(uint16_t* Buff, uint32_t Used, uint32_t Flags);
 
     //get size of buffer
     size_t SizeGet() {return mSize;};
@@ -53,6 +53,7 @@ class ContinuousBufferManager
     {
       uint16_t *data;
       uint32_t used;
+      uint32_t flags;
     };
     SafeQueue<ContBuff *> *mEmptyBuffers;
     SafeQueue<ContBuff *> *mDataBuffers;

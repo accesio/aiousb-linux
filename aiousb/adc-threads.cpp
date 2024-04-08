@@ -122,6 +122,7 @@ ContinuousBufferManager::ContinuousBufferManager(int Count, size_t Size) : mSize
       ContBuff *Current = new ContBuff;
       Current->data = new uint16_t[Size];
       Current->used = 0;
+      Current->flags = 0;
 
       mEmptyBuffers->enqueue(Current);
     }
@@ -155,7 +156,7 @@ ContinuousBufferManager::~ContinuousBufferManager()
     delete mDataBuffers;
 }
 
-uint16_t* ContinuousBufferManager::EmptyBufferGet()
+uint16_t* ContinuousBufferManager::EmptyBufferGet(uint32_t *created)
 {
   ContBuff *Buff;
   uint16_t *retval;
@@ -164,10 +165,12 @@ uint16_t* ContinuousBufferManager::EmptyBufferGet()
 
   if (Buff == NULL)
     {
+      *created = true;
       retval = new uint16_t[mSize];
     }
   else
   {
+    *created = false;
     retval = Buff->data;
     delete Buff;
   }
@@ -184,27 +187,30 @@ void ContinuousBufferManager::EmptyBufferPut(uint16_t* Buff)
   mEmptyBuffers->enqueue(Current);
 }
 
-void ContinuousBufferManager::DataBufferGet(uint16_t **Buff, uint32_t *Used)
+void ContinuousBufferManager::DataBufferGet(uint16_t **Buff, uint32_t *Used, uint32_t *Flags)
 {
   ContBuff *Current = mDataBuffers->dequeue();
   if (Current != nullptr)
   {
     *Buff = Current->data;
     *Used = Current->used;
+    *Flags = Current->flags;
     delete Current;
   }
   else
   {
     *Buff = nullptr;
     *Used = 0;
+    *Flags = 0;
   }
 }
 
-void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used)
+void ContinuousBufferManager::DataBufferPut(uint16_t* Buff, uint32_t Used, uint32_t Flags)
 {
   ContBuff *Current = new ContBuff;
   Current->data = Buff;
   Current->used = Used;
+  Current->flags = Flags;
   mDataBuffers->enqueue(Current);
 }
 
@@ -275,7 +281,8 @@ void ContinuousAdcWorker::ExecuteCapture ()
 
     while (!mTerminated)
       {
-        this_buff = mBuffManager->EmptyBufferGet();
+        uint32_t created;
+        this_buff = mBuffManager->EmptyBufferGet(&created);
 
         status = AWU_GenericBulkIn(mDevice,
                                       0,
@@ -289,7 +296,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
         }
         if (used != 0)
           {
-            mBuffManager->DataBufferPut(this_buff, used);
+            mBuffManager->DataBufferPut(this_buff, used, created ? ADC_CONT_CALLBACK_FLAG_INSERTED : 0);
           }
         else
         {
@@ -329,7 +336,8 @@ void ContinuousAdcWorker::ExecuteCapture ()
 
     if ( bytes_left )
       {
-        this_buff = mBuffManager->EmptyBufferGet();
+        uint32_t created;
+        this_buff = mBuffManager->EmptyBufferGet(&created);
 
         status = AWU_GenericBulkIn(mDevice,
                                         0,
@@ -343,7 +351,7 @@ void ContinuousAdcWorker::ExecuteCapture ()
           }
         else
           {
-            mBuffManager->DataBufferPut(this_buff, used);
+            mBuffManager->DataBufferPut(this_buff, used, created ? ADC_CONT_CALLBACK_FLAG_INSERTED : 0);
           }
       }
 }
@@ -354,14 +362,15 @@ void ContinuousAdcWorker::ExecuteCallback ()
 {
   uint16_t *buff = nullptr;
   uint32_t used;
+  uint32_t flags;
   while (!mTerminated)
   {
-    mBuffManager->DataBufferGet(&buff, &used);
+    mBuffManager->DataBufferGet(&buff, &used, &flags);
     //TODO: For now Not doing the flags. Need to discuss with other team members
     //about need.
     if (buff != nullptr)
     {
-      mCallback(buff, used, 0, mContext);
+      mCallback(buff, used, flags, mContext);
 
       mBuffManager->EmptyBufferPut(buff);
       buff = nullptr;

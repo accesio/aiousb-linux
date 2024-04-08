@@ -27,7 +27,7 @@ void callback (uint16_t *buff, uint32_t buff_size,
     //see ADC_GetScanV for a more complete implementation.
     volts = buff[sample] * 1.0/65536.0;
     volts = volts * 10;
-    printf("channel %d: %f\n", sample + 1, volts);
+    //printf("channel %d: %f\n", sample + 1, volts);
   }
 }
 
@@ -51,7 +51,7 @@ int main (int argc, char **argv)
 
 	if (argc != 2)
 	{
-		printf("usage: aiousb-test <filename>\n");
+		printf("usage: aiousb-continuous-acquisition <filename>\n");
 		return -1;
 	}
 
@@ -93,7 +93,7 @@ status = AIOUSB::ADC_SetOversample(device, OVERSAMPLE);
 
   status = AIOUSB::ADC_BulkContinuousStart(device,
                                 512 * (END_CHANNEL - START_CHANNEL + 1),
-                                3,
+                                1,
                                 0,
                                 callback);
 
