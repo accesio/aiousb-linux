@@ -570,6 +570,44 @@ int DeviceIndexByPath (const char *fname, unsigned long *device_index)
   return ret_val;
 }
 
+uint32_t DeviceIndexByEEPROMByte (uint8_t Data)
+{
+  uint32_t ret_val = 0xFFFFFFFF; //initalize to nothing found
+  uint8_t read_val;
+  int status;
+  aiousb_debug_print("Enter");
+
+  if (!aiousb_init_complete) return -ENAVAIL;
+
+  pthread_mutex_lock(&aiousb_devices_lock);
+  for ( int i = 0 ; i < AIOUSB_MAX_DEVICES ; i++)
+  {
+    if (aiousb_device_present(i))
+    {
+      status = CustomEEPROMRead(aiousb_devices[i], 0, sizeof(read_val), &read_val);
+
+      if (status != sizeof(read_val)) {
+        aiousb_library_err_print("status = 0x%d", status);
+        continue;
+      }
+      if (Data == read_val)
+      {
+        if (ret_val != 0xFFFFFFFF)
+        {
+          errno = -EBADF;
+        }
+        else
+        {
+          ret_val = i;
+        }
+      }
+    }
+  }
+  pthread_mutex_unlock(&aiousb_devices_lock);
+  aiousb_debug_print("returning %d", ret_val);
+  return ret_val;
+}
+
 uint32_t GetDevices()
 {
   uint32_t retval = 0;

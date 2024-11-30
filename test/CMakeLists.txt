@@ -57,3 +57,6 @@ target_link_libraries(aiousb-aio16-16f-test ${AIOUSB_BINARY_DIR}/aiousb/libaious
 
 add_executable(aiousb-ao16-16a-test aiousb-ao16-16a-test.cpp)
 target_link_libraries(aiousb-ao16-16a-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
+
+add_executable(aiousb-test-getbyeeprom aiousb-test-getbyeeprom.cpp)
+target_link_libraries(aiousb-test-getbyeeprom ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
