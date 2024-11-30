@@ -3,15 +3,29 @@
 
 #include "aiousb.h"
 
+#include "AiousbSamples.inc"
+
 #define START_CHANNEL 0
 #define END_CHANNEL 15
-#define OVERSAMPLE 0
+#define OVERSAMPLE 3
 #define FREQUENCY 5000
 
 #define err_printf(fmt, ...) \
-        do { printf ("%s:%d:%s(): \n" fmt, __FILE__, \
+        do { printf ("%s:%d:%s(): " fmt "\n", __FILE_NAME__, \
                                 __LINE__, __func__, ##__VA_ARGS__); } while (0)
 
+
+void DumpConfig(AIOUSB::aiousb_device_handle Device)
+{
+  uint8_t config_buff[32];
+  uint32_t config_size = sizeof(config_buff);
+  AIOUSB::ADC_GetConfig(Device, config_buff, &config_size);
+  printf("Config dump:\n");
+  for (int i = 0; i < config_size; i++)
+    {
+      printf("%02x: %02x\n", i, config_buff[i]);
+    }
+}
 
 void callback (uint16_t *buff, uint32_t buff_size,
               uint32_t flags, void *context)
@@ -27,7 +41,7 @@ void callback (uint16_t *buff, uint32_t buff_size,
     //see ADC_GetScanV for a more complete implementation.
     volts = buff[sample] * 1.0/65536.0;
     volts = volts * 10;
-    //printf("channel %d: %f\n", sample + 1, volts);
+    printf("channel %d: %f\n", sample + 1, volts);
   }
 }
 
@@ -49,19 +63,14 @@ int main (int argc, char **argv)
       return -1;
     }
 
-	if (argc != 2)
-	{
-		printf("usage: aiousb-continuous-acquisition <filename>\n");
-		return -1;
-	}
+  status = SampleGetDeviceHandle(argc, argv, &device);
 
-	status = AIOUSB::DeviceHandleByPath(argv[1], &device);
+  err_printf("status = %d", status);
 
-	if (status)
-	{
-		err_printf("Error opening device: %d\n", status);
-		return -1;
-	}
+  if (status)
+  {
+    err_printf("Unable to open device");
+  }
 
   status = AIOUSB::ADC_GetConfig(device, config_buff, &config_size);
 
@@ -90,6 +99,8 @@ status = AIOUSB::ADC_SetOversample(device, OVERSAMPLE);
 
 
   AIOUSB::CTR_8254StartOutputFreq(device, 0, &frequency);
+
+ DumpConfig(device); 
 
   status = AIOUSB::ADC_BulkContinuousStart(device,
                                 512 * (END_CHANNEL - START_CHANNEL + 1),

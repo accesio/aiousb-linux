@@ -19,7 +19,9 @@ public:
   { stop = false;}
 
   ~SafeQueue(void)
-  {}
+  {
+    Stop();
+  }
 
   // Add an element to the queue.
   void enqueue(T t)
@@ -33,27 +35,29 @@ public:
   // If the queue is empty, wait till a element is avaiable.
   T dequeue(void)
   {
-    std::unique_lock<std::mutex> lock(m);
-    while(q.empty())
-    {
-      // release lock as long as the wait and reaquire it afterwards.
-      c.wait(lock);
+      std::unique_lock<std::mutex> lock(m);
+      while(q.empty() && !stop)  // Check both conditions under lock
+      {
+          c.wait(lock);
+      }
       if (stop) return nullptr;
-    }
-    T val = q.front();
-    q.pop();
-    return val;
+
+      T val = q.front();
+      q.pop();
+      return val;
   }
+
 
 T tryDequeue(void)
 {
-  std::unique_lock<std::mutex> lock(m);
-  if (q.empty()) return NULL;
+    std::unique_lock<std::mutex> lock(m);
+    if (q.empty()) return nullptr;  // Use nullptr consistently
 
-  T val = q.front();
-  q.pop();
-  return val;
+    T val = q.front();
+    q.pop();
+    return val;
 }
+
 
 void Stop(void)
 {

@@ -6,11 +6,11 @@
         "configurations": [
 
         {
-                "name": "(gdb) Launch continuous",
+                "name": "(gdb) Launch continuous test",
                 "type": "cppdbg",
                 "request": "launch",
                 "program": "${workspaceFolder}/build/test/aiousb-continuous-acquisition",
-                "args": ["/dev/accesio/usb_aio16_16f_3"],
+                "args": [],
                 "stopAtEntry": false,
                 "cwd": "${workspaceFolder}",
                 "environment": [],
@@ -155,6 +155,42 @@
                         "type": "cppdbg",
                         "request": "attach",
                         "program": "${workspaceFolder}/build/samples/AiousbDioSample",
+                        "processId": "${command:pickProcess}",
+                        "MIMode": "gdb",
+                        "cwd": "${workspaceFolder}",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ],
+                        "stopAtEntry": false
+                },
+                {
+                        "name": "(gdb) Launch AiousbAdcContinuousSample",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/samples/AiousbAdcContinuousSample",
+                        "args": ["-d" ],
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ]
+                },
+                {
+                        "name": "(gdb) Attach to AiousbAdcContinuousSample",
+                        "type": "cppdbg",
+                        "request": "attach",
+                        "program": "${workspaceFolder}/build/samples/AiousbAdcContinuousSample",
                         "processId": "${command:pickProcess}",
                         "MIMode": "gdb",
                         "cwd": "${workspaceFolder}",

@@ -33,9 +33,9 @@ int main(int argc, char **argv)
   err_printf("status = %d", status);
 
   if (status)
-    {
-      err_printf("Unable to open device");
-    }
+  {
+    err_printf("Unable to open device");
+  }
 
   status = AIOUSB::ADC_SetScanLimits(Device, START_CHANNEL, END_CHANNEL);
 
