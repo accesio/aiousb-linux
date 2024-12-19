@@ -30,6 +30,17 @@ make
 sudo make install
 ```
 
+# Building in Red Hat
+ACCES attempts to provide source code that will build with as wide a range of
+Linux kernels as possible. Our officially supported distribution is Ubuntu, and
+in house development is done on Debian based distros including Ubuntu.
+
+Red Hat will backport changes from newer kernels that break compatibility with
+the vanilla Linux kernel. If you get a compiler error in the module directory
+and are running a Red Hat based OS, search for `LINUX_VERSION_CODE` in the source.
+Modify the code to choose the other path than what `uname -r` indicates and
+build. Don't hesitate to contact ACCES if you need assistance.
+
 
 ## Setting device permissions on module load
 By default the device file requires root permissions to access. To change the default permissions for the device pass `dev_mode` to the module as a parameter. The mode can be passed in octal similar to `chmod` command
