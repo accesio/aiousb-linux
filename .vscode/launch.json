@@ -4,83 +4,83 @@
         // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
         "version": "0.2.0",
         "configurations": [
-
-        {
-                "name": "(gdb) Launch continuous",
-                "type": "cppdbg",
-                "request": "launch",
-                "program": "${workspaceFolder}/build/test/aiousb-continuous-acquisition",
-                "args": ["/dev/accesio/usb_aio16_16f_3"],
-                "stopAtEntry": false,
-                "cwd": "${workspaceFolder}",
-                "environment": [],
-                "externalConsole": false,
-                "MIMode": "gdb",
-                "setupCommands": [
-                    {
-                        "description": "Enable pretty-printing for gdb",
-                        "text": "-enable-pretty-printing",
-                        "ignoreFailures": true
-                    }
-                ]
-        },
-        {
-                "name": "(gdb) Launch aiousb-adc-getscanv-test",
-                "type": "cppdbg",
-                "request": "launch",
-                "program": "${workspaceFolder}/build/test/aiousb-adc-getscanv-test",
-                "args": ["/dev/accesio/usb_aio16_16f_3"],
-                "stopAtEntry": false,
-                "cwd": "${workspaceFolder}",
-                "environment": [],
-                "externalConsole": false,
-                "MIMode": "gdb",
-                "setupCommands": [
-                    {
-                        "description": "Enable pretty-printing for gdb",
-                        "text": "-enable-pretty-printing",
-                        "ignoreFailures": true
-                    }
-                ]
-        },
-        {
-                "name": "(gdb) Launch aiousb-adc-getfastscanv-test",
-                "type": "cppdbg",
-                "request": "launch",
-                "program": "${workspaceFolder}/build/test/aiousb-adc-getfastscanv-test",
-                "args": [],
-                "stopAtEntry": false,
-                "cwd": "${workspaceFolder}",
-                "environment": [],
-                "externalConsole": false,
-                "MIMode": "gdb",
-                "setupCommands": [
-                    {
-                        "description": "Enable pretty-printing for gdb",
-                        "text": "-enable-pretty-printing",
-                        "ignoreFailures": true
-                    }
-                ]
-        },
-        {
-                "name": "(gdb) Launch hotplug-testing",
-                "type": "cppdbg",
-                "request": "launch",
-                "program": "${workspaceFolder}/build/test/hotplug-testing",
-                "args": [],
-                "stopAtEntry": false,
-                "cwd": "${workspaceFolder}",
-                "environment": [],
-                "externalConsole": false,
-                "MIMode": "gdb",
-                "setupCommands": [
-                    {
-                        "description": "Enable pretty-printing for gdb",
-                        "text": "-enable-pretty-printing",
-                        "ignoreFailures": true
-                    }
-                ]
-        },
+                {
+                        "name": "(gdb) Launch continuous",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/test/aiousb-continuous",
+                        "args": [
+                                "/dev/accesio/usb_aio16_16f_3"
+                        ],
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ]
+                },
+                {
+                        "name": "(gdb) Launch aiousb-adc-getscanv-test",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/test/aiousb-adc-getscanv-test",
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ]
+                },
+                {
+                        "name": "(gdb) Launch aiousb-adc-getfastscanv-test",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/test/aiousb-adc-getfastscanv-test",
+                        "args": [],
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ]
+                },
+                {
+                        "name": "(gdb) Launch hotplug-testing",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/test/hotplug-testing",
+                        "args": [],
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ]
+                },
                 {
                         "name": "(gdb) Launch aiousb",
                         "type": "cppdbg",
@@ -95,11 +95,11 @@
                         "externalConsole": false,
                         "MIMode": "gdb",
                         "setupCommands": [
-                            {
-                                "description": "Enable pretty-printing for gdb",
-                                "text": "-enable-pretty-printing",
-                                "ignoreFailures": true
-                            }
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
                         ]
                 },
                 {
@@ -136,7 +136,7 @@
                         "type": "cppdbg",
                         "request": "launch",
                         "program": "${workspaceFolder}/build/samples/AiousbDioSample",
-                        "args": [ ],
+                        "args": [],
                         "stopAtEntry": false,
                         "cwd": "${workspaceFolder}",
                         "environment": [],
@@ -149,6 +149,23 @@
                                         "ignoreFailures": true
                                 }
                         ]
+                },
+                {
+                        "name": "(gdb) Attach to libaiousb.so",
+                        "type": "cppdbg",
+                        "request": "attach",
+                        "program": "${workspaceFolder}/build/samples/AiousbDioSample",
+                        "processId": "${command:pickProcess}",
+                        "MIMode": "gdb",
+                        "cwd": "${workspaceFolder}",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ],
+                        "stopAtEntry": false
                 }
         ]
 }

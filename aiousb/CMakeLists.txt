@@ -4,6 +4,10 @@ add_library(aiousb_shared SHARED aiousb.cpp adc-threads.cpp)
 
 set_property(TARGET aiousb aiousb_shared PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_options(aiousb PRIVATE -O0 -g)
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
 
 if (AIOUSB_DEBUG)
   target_compile_definitions (aiousb PRIVATE AIOUSB_DEBUG=1)
@@ -29,4 +33,3 @@ ADD_CUSTOM_COMMAND(TARGET aiousb_shared POST_BUILD
 set (LIBRARY_FILES ${CMAKE_CURRENT_BINARY_DIR}/libaiousb.so ${CMAKE_CURRENT_BINARY_DIR}/libaiousb.a)
 
 install (FILES ${LIBRARY_FILES} DESTINATION ${CMAKE_INSTALL_LIBDIR})
-

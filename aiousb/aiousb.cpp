@@ -13,6 +13,7 @@
 #include <time.h>
 #include <dirent.h>
 #if NO_HOTPLUG != 1
+#error NO_HOTPLUG is not 1
 #include <libudev.h>
 #endif
 
@@ -2009,10 +2010,10 @@ int aiousb_get_scan_inner_adc_bulk(aiousb_device_handle device, uint8_t *config_
 
   status = ADC_SetConfig(device, config_buff, config_size);
 
-  if (status != sizeof(bc_data))
-  {
-    goto ERR_OUT;
-  }
+  // if (status != sizeof(bc_data))
+  // {
+  //   goto ERR_OUT;
+  // }
 
   bc_data = 0x5;
 
