@@ -1,4 +1,5 @@
 import ctypes
+import sys
 
 _handle = ctypes.CDLL('/usr/local/lib/libaiousb.so')
 
@@ -16,10 +17,17 @@ def ADC_GetScanV(index, channels):
   status = _handle.ADC_GetScanV(ctypes.c_ulong(index), retval)
   return (status, retval)
 
+def ADC_SetCal(index, caltype=":AUTO:"):
+  caltype_bytes = caltype.encode('utf-8')
+  return _handle.ADC_SetCal(ctypes.c_ulong(index), ctypes.c_char_p(caltype_bytes))
 
 if __name__ == "__main__":
+  if len(sys.argv) > 1 and sys.argv[1] == "debug":
+    input("Press Enter once debugger is attached...")
   status = AiousbInit()
   print ("AiousbInit returned %d" % status)
+  status = ADC_SetCal(0, caltype=":AUTO:")
+  print ("ADC_SetCal returned %d" % status)
   status = ADC_SetScanLimits(0, 0, 15)
   print ("ADC_SetScanLimits return %d" %status)
   status = ADC_SetOversample(0, 5)

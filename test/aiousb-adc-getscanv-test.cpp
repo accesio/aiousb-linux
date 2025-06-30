@@ -56,9 +56,9 @@ int main (int argc, char **argv)
 
   // DumpConfig(Device);
   
-  // status = AIOUSB::ADC_SetCal(Device, ":AUTO:");
-  // err_printf("status(ADC_SetCal) = %d", status);
-  // DumpConfig(Device);
+  status = AIOUSB::ADC_SetCal(Device, ":AUTO:");
+  err_printf("status(ADC_SetCal) = %d", status);
+  DumpConfig(Device);
 
   // status = AIOUSB::ADC_SetScanLimits(Device, START_CHANNEL, END_CHANNEL);
   // err_printf("status(ADC_SetScanLimits) = %d", status);
@@ -120,6 +120,19 @@ int main (int argc, char **argv)
   for (int i = 0 ; i <= END_CHANNEL - START_CHANNEL ; i++)
   {
     printf("%d: %f\n", i, voltages[i]);
+  }
+
+  for (int i = 0 ; i < 1000 ; i++)
+  {
+    status = AIOUSB::ADC_SetCal(Device, ":AUTO:");
+    if (status < 0)
+    {
+      AIOUSB::ADC_SetCal(Device, ":AUTO:");
+    }
+    if (i % 10 == 0)
+    {
+      printf("SetCal %d\n", i);
+    }
   }
 
   clock_gettime(CLOCK_MONOTONIC, &begin);

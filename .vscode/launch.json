@@ -151,6 +151,25 @@
                         ]
                 },
                 {
+                        "name": "(gdb) Launch AiousbAdcSample",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/samples/AiousbAdcSample",
+                        "args": ["-d", "/dev/accesio/usb_aio16_16f_7_3"],
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ]
+                },
+                {
                         "name": "(gdb) Attach to libaiousb.so",
                         "type": "cppdbg",
                         "request": "attach",

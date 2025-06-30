@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <getopt.h>
 
 #include "aiousb.h"
 #include "sample_helpers.inc"
@@ -12,8 +13,24 @@
 
 #include "AiousbSamples.inc"
 
-void DoChanScan(AIOUSB::aiousb_device_handle Device, int ChannelCount);
-void DoImmScan(AIOUSB::aiousb_device_handle Device, int ChannelCount);
+struct option long_options[] = {
+  {"differential", no_argument, nullptr, 'd'},
+  {"help", no_argument, nullptr, 'h'},
+  {nullptr, 0, nullptr, 0}
+};
+
+void Usage () 
+{
+  std::cout << "Usage:" << std::endl;
+  std::cout << "AiousbAdcSample [--differential] [<device_file>]" << std::endl;
+  std::cout << "If no device file is specified and only one AIOUSB device is detected that lone device will be used" << std::endl;
+}
+
+int GetNumAdcMuxChan(uint32_t Pid);
+int GetNumAdcsImm(uint32_t Pid);
+
+void DoChanScan(AIOUSB::aiousb_device_handle Device, int ChannelCount, uint8_t ChannelByte);
+void DoImmScan(AIOUSB::aiousb_device_handle Device, int ChannelCount, uint8_t ChannelByte);
 
 int main (int argc, char **argv)
 {
@@ -22,13 +39,36 @@ int main (int argc, char **argv)
   uint32_t Pid;
   int ChannelCount;
   uint64_t SerialNum;
+  uint8_t ChannelByte = 0x01; //default to 10V bipolar range
+  int option;
 
   std::cout<<"ACCES AIOUSB-Linux ADC sample"<<std::endl;
+
+  //handle command line arguments
+  do
+  {
+    option = getopt_long(argc, argv, "", long_options, nullptr);
+    switch(option)
+    {
+      case 'd':
+        ChannelByte |= 0x08; //set the 4th bit to enable differential mode
+        std::cout << "Differential mode enabled" << std::endl;
+        break;
+      case 'h':
+      case '?':
+        Usage();
+        exit(0);
+        break;
+      case -1: //end of options
+        break;
+    }
+  }while (-1 != option);
+  optind--;
 
   AIOUSB::AiousbInit();
 
   //Try to get a device handle.
-  Status = SampleGetDeviceHandle(argc, argv, &Device);
+  Status = SampleGetDeviceHandle(argc - optind, &argv[optind], &Device);
 
   if ( 0 != Status )
   {
@@ -46,16 +86,16 @@ int main (int argc, char **argv)
   std::cout << "Serial Number: " <<std::hex << SerialNum << std::dec << std::endl;
 
   ChannelCount = GetNumAdcMuxChan(Pid);
-  if (0 != ChannelCount) DoChanScan(Device, ChannelCount);
+  if (0 != ChannelCount) DoChanScan(Device, ChannelCount, ChannelByte);
 
   ChannelCount = GetNumAdcsImm(Pid);
-  if (0 != ChannelCount) DoImmScan(Device, ChannelCount);
+  if (0 != ChannelCount) DoImmScan(Device, ChannelCount, ChannelByte);
 
 
 }
 
 //USB-AI style boards
-void DoChanScan(AIOUSB::aiousb_device_handle Device, int ChannelCount)
+void DoChanScan(AIOUSB::aiousb_device_handle Device, int ChannelCount, uint8_t ChannelByte)
 {
   int Status;
   double Volts[ChannelCount];
@@ -104,10 +144,12 @@ void DoChanScan(AIOUSB::aiousb_device_handle Device, int ChannelCount)
     std::cout << std::setw(3) << ch << std::setw(3) << ": " << Volts[ch] << std::endl;
   }
 
+  //ADC_GetScanV 
+
 }
 
 //USB-AO boards with immediete ADCs
-void DoImmScan(AIOUSB::aiousb_device_handle Device, int ChannelCount)
+void DoImmScan(AIOUSB::aiousb_device_handle Device, int ChannelCount, uint8_t ChannelByte)
 {
   int Status;
   double Volts[ChannelCount];
