@@ -1,6 +1,6 @@
 import ctypes
 
-_handle = ctypes.CDLL('./libaiousb.so')
+_handle = ctypes.CDLL('/usr/local/lib/libaiousb.so')
 
 def AiousbInit():
   return _handle.AiousbInit()

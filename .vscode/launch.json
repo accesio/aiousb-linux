@@ -29,7 +29,7 @@
                 "type": "cppdbg",
                 "request": "launch",
                 "program": "${workspaceFolder}/build/test/aiousb-adc-getscanv-test",
-                "args": ["/dev/accesio/usb_aio16_16f_3"],
+                "args": [],
                 "stopAtEntry": false,
                 "cwd": "${workspaceFolder}",
                 "environment": [],
@@ -149,6 +149,23 @@
                                         "ignoreFailures": true
                                 }
                         ]
+                },
+                {
+                        "name": "(gdb) Attach to libaiousb.so",
+                        "type": "cppdbg",
+                        "request": "attach",
+                        "program": "${workspaceFolder}/build/samples/AiousbDioSample",
+                        "processId": "${command:pickProcess}",
+                        "MIMode": "gdb",
+                        "cwd": "${workspaceFolder}",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ],
+                        "stopAtEntry": false
                 }
         ]
 }

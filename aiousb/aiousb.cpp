@@ -2009,8 +2009,9 @@ int aiousb_get_scan_inner_adc_bulk(aiousb_device_handle device, uint8_t *config_
 
   status = ADC_SetConfig(device, config_buff, config_size);
 
-  if (status != sizeof(bc_data))
+  if (status != 0)
   {
+    aiousb_library_err_print("ADC_SetConfig returned %d", status);
     goto ERR_OUT;
   }
 
