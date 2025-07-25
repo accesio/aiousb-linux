@@ -61,7 +61,7 @@ int main (int argc, char **argv)
   //  Config controls if the bytes are input or output. 1 bit per byte or group
   //  on devices that don't have per bit control
   uint8_t *Config;
-  size_t ConfigBytes = PerBitControl ? DioBytes : DioBytes % 8 + 1;
+  size_t ConfigBytes = PerBitControl ? DioBytes : DioBytes / 8 + 1;
   // Data is value of the bits read or written
   uint8_t *Data;
 
@@ -88,6 +88,28 @@ int main (int argc, char **argv)
   DIO_WriteAll(Device, Data);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+
+  std::cout << "Runway lights." << std::endl;
+
+  memset(Data, 0, DioBytes);
+  for (unsigned int j = 0 ; j < 6 ; j++)
+  {
+    for (unsigned int i = 0 ; i < DioBytes * 8 ; i++)
+    {
+      if ( j % 2 == 0 )
+      {
+        Data[i/8] |= 1 << (i % 8);
+      }
+      else
+      {
+        Data[i/8] &= ~(1 << (i % 8));
+      }
+      AIOUSB::DIO_WriteAll(Device, Data);
+      std::cout << "." << std::flush;
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+  }
+  std::cout << std::endl;
 
   std::cout << "Configuring DIO for input" << std::endl;
   memset(Config, 0, ConfigBytes);

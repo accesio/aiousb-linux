@@ -119,6 +119,22 @@ int main (int argc, char **argv)
         sleep(3);
     }
 
+    std::cout << "Walking bit tests" << std::endl;
+
+    memset(DioData, 0, DioBytes);
+
+    for (int i = 0 ; i < DioBytes * 8 ; i++)
+    {
+        memset(DioData, 0, DioBytes);
+        DioData[i/8] |= 1 << (i % 8);
+        Status = AIOUSB::DIO_WriteAll(Device, DioData);
+        std::cout << "." << std::flush;
+        sleep(1);
+    }
+
+    std::cout << std::endl;
+
+
     memset(OutMask, 0x00, DioBytes);
     Status = AIOUSB::DIO_Configure(Device, 0, OutMask, DioData);
 
