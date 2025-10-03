@@ -283,6 +283,12 @@ void ADContCallback(uint16_t *buff, uint32_t buff_size,
             << ", flags: " << flags << ", context: " << context << std::endl;
   std::cout << "Call count: " << ++call_count << std::endl;
 
+  if (flags & ADC_CONT_CALLBACK_FLAG_END_STREAM)
+  {
+    std::cout << "End of stream flag set" << std::endl;
+    exit(0);
+  }
+
   for (int i = Context->StartChannel; i < Context->EndChannel; i++)
   {
     double volts;

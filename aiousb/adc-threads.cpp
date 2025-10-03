@@ -296,7 +296,9 @@ void ContinuousAdcWorker::ExecuteCapture ()
         }
         if (used != 0)
           {
-            mBuffManager->DataBufferPut(this_buff, used, created ? ADC_CONT_CALLBACK_FLAG_INSERTED : 0);
+            mBuffManager->DataBufferPut(this_buff,
+                  used,
+                  created ? ADC_CONT_CALLBACK_FLAG_INSERTED : 0 | status? ADC_CONT_CALLBACK_FLAG_END_STREAM : 0);
           }
         else
         {

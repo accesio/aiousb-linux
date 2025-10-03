@@ -746,6 +746,9 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
 
     status = usb_submit_urb(dev->urb, GFP_KERNEL);
 
+    aio_driver_dev_print("urb_submit_urb returned %d", status);
+
+
     if (status)
     {
         aio_driver_err_print("Unable to submit urb status = %d", status);
@@ -753,7 +756,14 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
     }
 
 
-        wait_for_completion(&dev->urb_completion);
+        status = wait_for_completion_timeout(&dev->urb_completion, msecs_to_jiffies(500));
+
+        if (status == 0)
+        {
+            aio_driver_err_print("wait_for_completion_timeout returned %d", status);
+            status = -ETIMEDOUT;
+            goto ERR_OUT;
+        }
 
 
         status = dev->urb->status;
