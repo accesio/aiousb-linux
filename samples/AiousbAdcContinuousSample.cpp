@@ -21,7 +21,7 @@
 #define OVERSAMPLE 3
 #define SAMPLE_SIZE 2
 #define BUFFER_SIZE 512 * SAMPLE_SIZE *(OVERSAMPLE + 1) * (END_CHANNEL - START_CHANNEL + 1)
-#define DURATION 600
+#define DURATION 60
 
 struct option long_options[] = {
     {"help", no_argument, nullptr, 'h'},
