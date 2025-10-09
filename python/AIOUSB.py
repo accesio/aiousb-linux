@@ -6,8 +6,47 @@ Provide Python access via ctypes to ACCES's USB DAQ devices installed using the 
 Consult https://accesio.com/MANUALS/USB%20Software%20Reference%20Manual.html for additional information about the underlying functionality exposed by the API.
 """
 from typing import *
-from ctypes import *
-AIOUSB = cdll.LoadLibrary("AIOUSB.dll")
+import ctypes
+from ctypes import (
+    c_int, c_uint8, c_uint16, c_uint32, c_uint64, c_ulong, c_size_t,
+    c_double, c_char_p, c_void_p, POINTER, Structure, CFUNCTYPE,
+    byref, create_string_buffer, cast
+)
+import os
+import sys
+
+# Load the library
+def _load_library():
+    """Load the AIOUSB library"""
+    if sys.platform.startswith('win'):
+        lib_name = 'aiousb.dll'
+    elif sys.platform.startswith('linux'):
+        lib_name = 'libaiousb.so'
+    elif sys.platform.startswith('darwin'):
+        lib_name = 'libaiousb.dylib'
+    else:
+        raise RuntimeError(f"Unsupported platform: {sys.platform}")
+
+    try:
+        return ctypes.CDLL(lib_name)
+    except OSError:
+        # Try to find in common locations
+        search_paths = [
+            '/usr/lib',
+            '/usr/local/lib',
+            '/opt/lib',
+            os.path.dirname(__file__)
+        ]
+
+        for path in search_paths:
+            full_path = os.path.join(path, lib_name)
+            if os.path.exists(full_path):
+                return ctypes.CDLL(full_path)
+
+        raise RuntimeError(f"Could not find {lib_name} library")
+
+
+AIOUSB = _load_library()
 
 diOnly = -3
 """AIOUSB sentinel value DeviceIndex meaning "the only device found"."""
@@ -21,6 +60,12 @@ def adc_callback(pBuf: POINTER(c_uint16), BufSize: c_uint32, Flags: c_uint32, Co
 
 # Assign the actual callback function to Ccallback
 Ccallback = ADC_Callback_Type(adc_callback)
+
+def AiousbInit():
+    """Initialize the AIOUSB library."""
+    AIOUSB.AiousbInit.argtypes = []
+    AIOUSB.AiousbInit.restype = c_int
+    return AIOUSB.AiousbInit()
 
 def GetDevices() -> c_uint64:
     """Return a bitmask of all detected deviceIndices."""
