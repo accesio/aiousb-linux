@@ -190,8 +190,8 @@ def DIO_Read1(index, bitIndex):
 
 def DIO_StreamOpen(index):
     """
-    Configure a USB-DIO-16H family device's high-speed digital bus for use as input or output. The high-speed digital bus provided by this family is “Dual Simplex”: it can only operate as output, or input. Although the USB-DIO-16H and USB-DIO-16A can switch the highspeed bus from input to output mode, or output to input, this process is not designed to occur in the course of normal data flow, thus the port is not classified as “Half Duplex”. 
-    Note: 	
+    Configure a USB-DIO-16H family device's high-speed digital bus for use as input or output. The high-speed digital bus provided by this family is “Dual Simplex”: it can only operate as output, or input. Although the USB-DIO-16H and USB-DIO-16A can switch the highspeed bus from input to output mode, or output to input, this process is not designed to occur in the course of normal data flow, thus the port is not classified as “Half Duplex”.
+    Note:
         Call DIO_ConfigureEx() and DIO_StreamSetClocks() as well, before sending/receiving data using DIO_StreamFrame().
     """
     return  # NYI
@@ -206,7 +206,7 @@ def DIO_StreamSetClocks():
     """
     Configure the highspeed port for external or internal clock source, and, if internal, the frequency thereof.
 
-    Note: 	
+    Note:
         Use "0" to indicate “External clock mode”.
         The Read and Write clock variables will be modified to indicate the Hz rate to which the unit will actually be configured: not all frequencies you can specify with a IEEE double can be achieved by the frequency generation circuit. Our DLL calculates the closest achievable frequency. If you're interested, you can consult the LTC6904 chipspec for details, or the provided source for the DLL.
         The slowest available frequency from the onboard generator is 1kHz; the fastest usable is 40MHz (the limit of the standard FIFO); the fastest useful for non-burst operation is ~8MHz (the streaming bandwidth limit of the USB→digital interface logic and code is 8MHz minimum, often as high as 12MHz if your computer is well optimized.)
@@ -218,7 +218,7 @@ def DIO_StreamFrame():
     """
     Send or Receive “fast” data across the DIO bus.
 
-    Note: 	
+    Note:
         This function is used for either input or output operation. “Stream” can be interpreted “upload,” “write,” “read,” “download,” “send,” “receive,” or any similar term.
     """
     return  # NYI
@@ -226,7 +226,7 @@ def DIO_StreamFrame():
 
 def CTR_8254Mode(index, chipIndex, counterIndex, mode):
     """
-    Configure the mode of operation for a specified counter. 
+    Configure the mode of operation for a specified counter.
 
     Notes:
         Calling CTR_8254Mode() will halt the counter specified until it gets “loaded” by calling CTR_8254Load() or the like.
@@ -244,7 +244,7 @@ def CTR_8254Load(index, chipIndex, counterIndex, load):
     """
     Load a counter with a 16-bit count-down value.
 
-    Notes: 	
+    Notes:
         A load value of “0” will behave like a (hypothetical) load value of 65536.
         Some modes do not support “1” as a load value. Other modes support neither “1” nor “2” as load values.
         Refer to the 82C54 chipspec for details
@@ -254,9 +254,9 @@ def CTR_8254Load(index, chipIndex, counterIndex, load):
 
 def CTR_8254ModeLoad(index, chipIndex, counterIndex, mode, load):
     """
-    Configure the mode of operation for a specified counter, and load that counter with a 16-bit count-down value. 
+    Configure the mode of operation for a specified counter, and load that counter with a 16-bit count-down value.
 
-    Note: 	
+    Note:
         CTR_8254ModeLoad() is similar to CTR_8254Mode() followed by CTR_8254Load(), but takes a single USB transaction, making it at least 250µsec faster than issuing the two operations independently. See CTR_8254Mode() and CTR_8254Load() for more notes.
     """
     return AIOUSB.CTR_8254ModeLoad(index, chipIndex, counterIndex, c_short(mode), c_short(load))
@@ -264,9 +264,9 @@ def CTR_8254ModeLoad(index, chipIndex, counterIndex, mode, load):
 
 def CTR_StartOutputFreq(index, chipIndex, Hz):
     """
-    Output a frequency from a counter 2 of a block, assuming a standard configuration. 
+    Output a frequency from a counter 2 of a block, assuming a standard configuration.
 
-    Note: 	
+    Note:
         This function requires that the individual counters in the specified 8254 be wired up as follows: 10MHz → IN1, and OUT1 → IN2. If the 10MHz is replaced with other frequencies, the pHz calculation will scale predictably.
         For most 8254s in our USB product line, this is the permanent wiring configuration. The exception is the USB-CTR-15, which has more flexibility; this wiring is provided by the USB-CTR-15's “Standard Configuration Adapter”.
         The USB-CTR-15 can output as many as 15 frequencies, if you use CTR_8254ModeLoad() &emdash; but if you use CTR_StartOutputFreq(), you can only achieve 5, on CTR2 of each of the 5 blocks. (Counters 2, 5, 8, 11, and 14 under the secondary numbering convention. See note at the beginning of this section.)
@@ -278,10 +278,10 @@ def CTR_StartOutputFreq(index, chipIndex, Hz):
 
 def CTR_8254Read(index, chipIndex, counterIndex):
     """
-    Reads the current count value from the indicated counter. 
+    Reads the current count value from the indicated counter.
 
     Note:
-        The counts loaded cannot be read back. Only the “current count” is readable, and the current count does not initialize with the “(re-)load count value” until the first input clock occurs. Let us know if you need CTR_8254ReadStatusAll() functionality in your application.   
+        The counts loaded cannot be read back. Only the “current count” is readable, and the current count does not initialize with the “(re-)load count value” until the first input clock occurs. Let us know if you need CTR_8254ReadStatusAll() functionality in your application.
     """
     counts = c_short(0)
     status = AIOUSB.CTR_8254Read(index, chipIndex, counterIndex, byref(counts))
@@ -302,9 +302,9 @@ def CTR_8254ReadAll(index):
 
 def CTR_8254ReadStatus(index, chipIndex, counterIndex):
     """
-    Reads both the current count value and the status from the indicated counter. 
+    Reads both the current count value and the status from the indicated counter.
 
-    Note: 
+    Note:
         The meaning of the individual bits in the status byte is best described in the 82C54 chip spec, which is readily found by searching the internet. Most often useful is “null count”, bit 6; when it's high, the count value is not particularly useful.
     """
     counts = c_short(0)
@@ -318,8 +318,8 @@ def CTR_8254ReadModeLoad(index, chipIndex, counterIndex, mode, load):
     """
     Read, then mode, then load, the specified counter.
 
-    Note: 
-        CTR_8254ReadModeLoad() is similar to CTR_8254Read() followed by CTR_8254Mode() followed by CTR_8254Load(), but takes a single USB transaction, making it at least 500µsec faster than issuing the two operations independently. 
+    Note:
+        CTR_8254ReadModeLoad() is similar to CTR_8254Read() followed by CTR_8254Mode() followed by CTR_8254Load(), but takes a single USB transaction, making it at least 500µsec faster than issuing the two operations independently.
         The reading is taken before the mode and load occur.
         See CTR_8254Read(), CTR_8254Mode(), and CTR_8254Load() for more notes.
     """
@@ -343,7 +343,7 @@ def DACMultiDirect(index, DACValues, count):
     """
     Simultaneously output values on multiple DACs.
 
-    Note: 
+    Note:
         Takes list of channel/count pairs and the count of pairs in the list
     """
     dataBuf = (c_short * count)()
@@ -377,9 +377,9 @@ def ADC_GetScanV(index):
     This simple function takes one scan of A/D data and converts it to voltage. It also averages oversamples for each channel. On “DC-Level” boards with A/D that don't support ADC_SetConfig(), it scans all channels, without oversampling.
     This function converts input counts to voltages based on the range previously configured with ADC_Init or ADC_SetConfig. It will take data at the configured number of oversamples or more, average the readings from the channels, and convert the counts to voltage.
     This is the easiest way to read A/D data, but can't achieve more than hundreds of Hz, or even slower depending on options. It should readily achieve 0 to 100 Hz operation, on up to 128 channels.
-    The speed limit is because this function performs intro & outro housekeeping USB transactions each call, to make it simple to use. 
+    The speed limit is because this function performs intro & outro housekeeping USB transactions each call, to make it simple to use.
 
-    Note: 
+    Note:
         For a faster but less-convenient API that moves these housekeeping functions out of the acquisition loop, please refer to the section on ADC_GetFastScanV().
     """
     dataBuf = (c_double * 128)()
@@ -389,7 +389,7 @@ def ADC_GetScanV(index):
 
 def ADC_GetChannelV(index, channel):
     """
-    Acquire the voltage level on one A/D input. 
+    Acquire the voltage level on one A/D input.
 
     Use this function when your language doesn't handle implicitly-lengthed arrays of doubles as used by ADC_GetScanV(), or to acquire readings from just a few channels, slowly — during debugging or calibration, for example
     This function is provided only for ease of use, implemented as a convenience wrapper for ADC_GetScanV(); it acquires all configured channels using ADC_GetScanV(), but returns only the specified channel's data. Therefore, reading two channels using ADC_GetChannelV() is at least twice as slow as using ADC_GetScanV().
@@ -413,9 +413,9 @@ def ADC_RangeAll(index, gainCodes, bDifferential):
     Configure the Range Code for all ADC channels.
 
     Normally configuring Range Codes requires bit manipulation to combine the Unipolar/Bipolar bit, the Differential/Single-Ended bit, and the Gain Bits into a single byte value per Range Group. This function performs this operation for you and updates the new configuration to the device using ADC_SetConfig()
-    This function is currently implemented as a convenience-wrapper via a read-modify-write algorithm: It calls ADC_GetConfig(), modifies the returned config array as requested, then writes the new config via ADC_SetConfig(). 
+    This function is currently implemented as a convenience-wrapper via a read-modify-write algorithm: It calls ADC_GetConfig(), modifies the returned config array as requested, then writes the new config via ADC_SetConfig().
 
-    Note: 
+    Note:
         Although USB serializes operations across the cable this function performs several sequential transactions and is therefore not process-safe.
     """
     gainBuf = (c_ubyte * 16)()
@@ -429,9 +429,9 @@ def ADC_Range1(index, channel, gaincode, bDifferential):
     Configure the Range Code for a single “Range Group” of channels, which is a single channel on 16-channel boards.
 
     Normally the Range Code for each Range Group is configured using the ADC_SetConfig() array byte at [Range Group #]. This function updates the config array for you, and writes the resulting configuration to the card using ADC_SetConfig().
-    This function is currently implemented as a convenience-wrapper via a read-modify-write algorithm: it calls ADC_QueryConfig(), modifies the returned config array as requested, then writes the new config via ADC_SetConfig(). 
+    This function is currently implemented as a convenience-wrapper via a read-modify-write algorithm: it calls ADC_QueryConfig(), modifies the returned config array as requested, then writes the new config via ADC_SetConfig().
 
-    Note: 
+    Note:
         Although USB serializes operations across the cable this function performs several sequential transactions and is therefore not process-safe.
     """
     return AIOUSB.ADC_Range1(index, channel, c_ubyte(gaincode), bDifferential)
@@ -446,7 +446,7 @@ def ADC_SetCal(index, calname):
     """
     Configure the analog input calibration of a USB-AIx board.
 
-    Note: 
+    Note:
         Some revisions of the driver will return errors under all conditions if you attempt to ADC_SetCal() unsupported hardware; other driver revisions will return ERROR_SUCCESS if you request “:NONE:” (or “:1TO1:”) on a board that does _not_ support calibration, as the request, although skipped, was technically successful - the calibration table of unsupported hardware is always `:NONE:`
         Call ADC_SetCalAndSave() to also receive the calibration table data for use by your application.
     """
@@ -481,7 +481,7 @@ def ADC_ReadData(index, config, scans, timeout):
             0           Data already acquired is returned. ADC_ReadData doesn't wait for more, regardless of the amount.
         Infinity        The specified number of scans(or an error) is returned. So long as the ADC operation is functioning, ADC_ReadData will continue to wait until this request is fulfilled.
         Positive        ADC_ReadData will wait up to Timeout milliseconds in order to return all the requested data. At that time, if a lesser amount of data is available, then ADC_ReadData will return what's available.
-        Negative        "All or nothing". ADC_ReadData will wait up to abs(Timeout) milliseconds in order to return all the requested data. If there still isn't that much data available at that time, then ADC_ReadData will time out. 
+        Negative        "All or nothing". ADC_ReadData will wait up to abs(Timeout) milliseconds in order to return all the requested data. If there still isn't that much data available at that time, then ADC_ReadData will time out.
     """
     dataBuf = (c_double * 1024)()
     scansToRead = c_long(scans)
