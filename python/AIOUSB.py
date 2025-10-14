@@ -182,7 +182,7 @@ def DIO_ConfigureEx(index, Tristates, Outs, Data):
 
 
 def DIO_ConfigureMasked():
-    return  # nyi
+    raise Exception("NYI")
 
 
 def DIO_WriteAll(index, Data):
@@ -239,12 +239,12 @@ def DIO_StreamOpen(index):
     Note:
         Call DIO_ConfigureEx() and DIO_StreamSetClocks() as well, before sending/receiving data using DIO_StreamFrame().
     """
-    return  # NYI
+    raise Exception("NYI")
 
 
 def DIO_StreamClose():
     """Terminate the buffered input or output operation on a USB-DIO-16H family device."""
-    return  # NYI
+    raise Exception("NYI")
 
 
 def DIO_StreamSetClocks():
@@ -256,7 +256,7 @@ def DIO_StreamSetClocks():
         The Read and Write clock variables will be modified to indicate the Hz rate to which the unit will actually be configured: not all frequencies you can specify with a IEEE double can be achieved by the frequency generation circuit. Our DLL calculates the closest achievable frequency. If you're interested, you can consult the LTC6904 chipspec for details, or the provided source for the DLL.
         The slowest available frequency from the onboard generator is 1kHz; the fastest usable is 40MHz (the limit of the standard FIFO); the fastest useful for non-burst operation is ~8MHz (the streaming bandwidth limit of the USB→digital interface logic and code is 8MHz minimum, often as high as 12MHz if your computer is well optimized.)
     """
-    return  # NYI
+    raise Exception("NYI")
 
 
 def DIO_StreamFrame():
@@ -266,7 +266,7 @@ def DIO_StreamFrame():
     Note:
         This function is used for either input or output operation. “Stream” can be interpreted “upload,” “write,” “read,” “download,” “send,” “receive,” or any similar term.
     """
-    return  # NYI
+    raise Exception("NYI")
 
 
 def CTR_8254Mode(index, chipIndex, counterIndex, mode):
