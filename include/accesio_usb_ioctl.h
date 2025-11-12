@@ -25,6 +25,7 @@ struct accesio_usb_bulk_transfer
         int size;
         int *transferred;
         int read;
+        int timeout_ms;
 };
 
 #define ACCESIO_USB_BULK_XFER        _IOWR(ACCESIO_MAGIC_NUM, 2, struct accesio_usb_bulk_transfer *)
