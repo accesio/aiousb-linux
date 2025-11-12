@@ -60,3 +60,6 @@ target_link_libraries(aiousb-ao16-16a-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb
 
 add_executable(aiousb-test-getbyeeprom aiousb-test-getbyeeprom.cpp)
 target_link_libraries(aiousb-test-getbyeeprom ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})
+
+add_executable(aiousb-adc-acquire-channel-test aiousb-adc-acquire-channel-test.cpp)
+target_link_libraries(aiousb-adc-acquire-channel-test ${AIOUSB_BINARY_DIR}/aiousb/libaiousb.a ${AIOUSB_LIBS})

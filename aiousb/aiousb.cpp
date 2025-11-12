@@ -1642,7 +1642,6 @@ int CTR_8254ModeLoad(aiousb_device_handle device, uint32_t block_index,
   return status;
 }
 
-//TODO: Untested. This needs to be tested before exposing to customers.
 int CTR_8254StartOutputFreq(aiousb_device_handle device,
                 uint32_t block_index, double *frequency)
 {
@@ -2908,6 +2907,114 @@ int ADC_ResetFastScanV(aiousb_device_handle device)
   device->config_size = 0;
   return status;
 }
+
+int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
+                    double frequency, uint32_t samples, uint16_t *buff)
+{
+  int status;
+  uint8_t config_buff[MAX_CONFIG_SIZE] = {0};
+  uint32_t config_size = sizeof(config_buff);
+
+  uint32_t bytes_left, control_data;
+  uint32_t used = 0;
+
+  aiousb_debug_print("Enter");
+  if (!(device->descriptor.b_adc_bulk))
+    {
+      return -EBADRQC;
+    }
+
+  if (samples % 512)
+    {
+      aiousb_library_err_print("Invalid sample count");
+      return -EINVAL;
+    }
+
+  //get the config and modify it for single channel
+
+  status = ADC_GetConfig(device, config_buff, &config_size);
+
+  if (status)
+    {
+      aiousb_library_err_print("ADC_GetConfig returned %d", status);
+      return status;
+    }
+
+    //set channel
+  config_buff[0x12] = (channel << 4 & 0xf0) | (channel & 0xf);
+  config_buff[0x14] = (channel & 0xf0) | (channel >> 4 & 0xf);
+
+  //set trigger to timer trigger
+  config_buff[0x11] = 0x01;
+
+  status = ADC_SetConfig(device, config_buff, &config_size);
+  if (status)
+    {
+      aiousb_library_err_print("ADC_SetConfig returned %d", status);
+      return status;
+    }
+
+    CTR_8254StartOutputFreq(device, 0, &frequency);
+
+  //execute the capture. Simplified version of ContinuousAdcWorker::ExecuteCapture()
+
+
+      control_data = 0x01000007;
+      GenericVendorWrite(device,
+                                      0xbc,
+                                      0,
+                                      0,
+                                      sizeof(control_data),
+                                      &control_data);
+
+        status = AWU_GenericBulkIn(device,
+                                      0,
+                                      buff,
+                                      sizeof(uint16_t) * samples,
+                                      (int *)&used);
+
+       
+
+        if (status)
+        {
+          aiousb_library_err_print("bulk_in fail");
+        }
+        
+      control_data = 0x00020002;
+      GenericVendorWrite(device,
+                                      0xbc,
+                                      0,
+                                      0,
+                                      sizeof(control_data),
+                                      &control_data);
+
+    bytes_left = 0;
+
+    GenericVendorRead(device,
+                          0xbc,
+                          0,
+                          0,
+                          sizeof(bytes_left), &bytes_left);
+
+    bytes_left &= 0xffff;
+
+    if ( bytes_left )
+      {
+        uint16_t *temp_buff = (uint16_t *)malloc(bytes_left);
+
+        status = AWU_GenericBulkIn(device,
+                                        0,
+                                        temp_buff,
+                                        bytes_left,
+                                        (int *)&used);
+
+        free(temp_buff);
+      }
+
+  return status;
+}
+
+    
 
 int ADC_RangeAll(aiousb_device_handle device, uint8_t *gain_codes,
                 uint32_t b_differential)

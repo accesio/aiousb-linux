@@ -202,6 +202,30 @@
                                 }
                         ],
                         "stopAtEntry": false
+                },
+                {
+                        "name": "(gdb) Launch aiousb-adc-acquire-channel-test",
+                        "type": "cppdbg",
+                        "request": "launch",
+                        "program": "${workspaceFolder}/build/test/aiousb-adc-acquire-channel-test",
+                        "stopAtEntry": false,
+                        "cwd": "${workspaceFolder}",
+                        "environment": [
+                                {
+                                        "name": "LD_LIBRARY_PATH",
+                                        "value": "${workspaceFolder}/build/aiousb:${env:LD_LIBRARY_PATH}"
+                                }
+                        ],
+                        "externalConsole": false,
+                        "MIMode": "gdb",
+                        "setupCommands": [
+                                {
+                                        "description": "Enable pretty-printing for gdb",
+                                        "text": "-enable-pretty-printing",
+                                        "ignoreFailures": true
+                                }
+                        ],
+
                 }
         ]
 }
