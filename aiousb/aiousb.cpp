@@ -721,7 +721,7 @@ int AWU_GenericBulkIn (aiousb_device_handle device,
 
   status = ioctl(device->fd, ACCESIO_USB_BULK_XFER, &context);
 
-  aiousb_debug_print("status = %d", status);
+  aiousb_debug_print("status = %d, errno = %d", status, errno);
 
   return status;
 }
@@ -2917,6 +2917,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
 
   uint32_t bytes_left, control_data;
   uint32_t used = 0;
+  double duration = (double)samples / frequency;
 
   aiousb_debug_print("Enter");
   if (!(device->descriptor.b_adc_bulk))
@@ -2945,7 +2946,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
   config_buff[0x14] = (channel & 0xf0) | (channel >> 4 & 0xf);
 
   //set trigger to timer trigger
-  config_buff[0x11] = 0x01;
+  config_buff[0x11] = 0x05;
 
   status = ADC_SetConfig(device, config_buff, &config_size);
   if (status)
@@ -2954,7 +2955,13 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       return status;
     }
 
-    CTR_8254StartOutputFreq(device, 0, &frequency);
+  status = CTR_8254StartOutputFreq(device, 0, &frequency);
+
+  if (status)
+    {
+      aiousb_library_err_print("CTR_8254StartOutputFreq returned %d", status);
+      return status;
+    }
 
   //execute the capture. Simplified version of ContinuousAdcWorker::ExecuteCapture()
 
@@ -2963,9 +2970,13 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       GenericVendorWrite(device,
                                       0xbc,
                                       0,
-                                      0,
+                                      1024,
                                       sizeof(control_data),
                                       &control_data);
+
+        // aiousb_library_err_print("Sleeping for %d milliseconds", (int)(duration * 1000) + 750);
+        // std::this_thread::sleep_for(std::chrono::milliseconds((int)(duration * 1000) + 750));       
+        //std::this_thread::sleep_for(std::chrono::milliseconds((int)(duration * 1000) + 750));       
 
         status = AWU_GenericBulkIn(device,
                                       0,

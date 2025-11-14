@@ -3,7 +3,7 @@
 #include "aiousb.h"
 
 #define NUM_SAMPLES 1024
-#define FREQUENCY 1000.0
+#define FREQUENCY 10000.0
 
 #define err_printf(fmt, ...) \
         do { printf ("%s:%d:%s(): " fmt "\n", __FILE_NAME__, \
@@ -28,10 +28,14 @@ int main (int arg, char **argv)
         exit(1);
     }
 
+    for (int i = 0; i < NUM_SAMPLES; i++)
+    {
+        data_buffer[i] = i;
+    }
 
     status = AIOUSB::ADC_AcquireChannel(device,
                                         2,
-                                        1000.0,
+                                        FREQUENCY,
                                         NUM_SAMPLES,
                                         data_buffer);
     err_printf("status(ADC_AcquireChannel) = %d", status);
