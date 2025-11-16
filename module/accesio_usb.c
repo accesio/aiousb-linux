@@ -755,8 +755,12 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
         goto ERR_OUT;
     }
 
+        if (context.timeout_ms == 0)
+        {
+            context.timeout_ms = 500;
+        }
 
-        status = wait_for_completion_timeout(&dev->urb_completion, msecs_to_jiffies(500));
+        status = wait_for_completion_timeout(&dev->urb_completion, msecs_to_jiffies(context.timeout_ms));
 
         if (status == 0)
         {

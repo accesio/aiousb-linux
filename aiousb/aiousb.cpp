@@ -677,7 +677,6 @@ int GenericVendorRead(aiousb_device_handle device,
 }
 
 
-
 int GenericVendorWrite(aiousb_device_handle device,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data)
@@ -704,13 +703,13 @@ int GenericVendorWrite(aiousb_device_handle device,
   return status;
 }
 
-int AWU_GenericBulkIn (aiousb_device_handle device,
+int _AWU_GenericBulkInTimeout (aiousb_device_handle device,
           unsigned int pipe_index, void *data, int size,
-          int *transferred)
+          int *transferred, int timeout_ms = 0)
 {
   struct accesio_usb_bulk_transfer context = {0};
   int status;
-  aiousb_debug_print("Enter");
+  aiousb_debug_print("Enter. timeout_ms=%d", timeout_ms);
 
 
   context.pipe_index = pipe_index;
@@ -718,10 +717,27 @@ int AWU_GenericBulkIn (aiousb_device_handle device,
   context.size = size;
   context.transferred = transferred;
   context.read = 1;
+  context.timeout_ms = timeout_ms;
 
   status = ioctl(device->fd, ACCESIO_USB_BULK_XFER, &context);
 
   aiousb_debug_print("status = %d, errno = %d", status, errno);
+
+  return status;
+}
+
+int AWU_GenericBulkIn (aiousb_device_handle device,
+          unsigned int pipe_index, void *data, int size,
+          int *transferred)
+{
+  int status;
+
+  status = _AWU_GenericBulkInTimeout(device,
+            pipe_index,
+            data,
+            size,
+            transferred,
+            0);
 
   return status;
 }
@@ -2917,7 +2933,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
 
   uint32_t bytes_left, control_data;
   uint32_t used = 0;
-  double duration = (double)samples / frequency;
+  double duration = ((double)samples / frequency ) * 1000.0;
 
   aiousb_debug_print("Enter");
   if (!(device->descriptor.b_adc_bulk))
@@ -2974,17 +2990,12 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
                                       sizeof(control_data),
                                       &control_data);
 
-        // aiousb_library_err_print("Sleeping for %d milliseconds", (int)(duration * 1000) + 750);
-        // std::this_thread::sleep_for(std::chrono::milliseconds((int)(duration * 1000) + 750));       
-        //std::this_thread::sleep_for(std::chrono::milliseconds((int)(duration * 1000) + 750));       
-
-        status = AWU_GenericBulkIn(device,
+        status = _AWU_GenericBulkInTimeout(device,
                                       0,
                                       buff,
                                       sizeof(uint16_t) * samples,
-                                      (int *)&used);
-
-       
+                                      (int *)&used,
+                                      duration + 100);
 
         if (status)
         {

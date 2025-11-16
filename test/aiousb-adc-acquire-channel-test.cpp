@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include "aiousb.h"
 
-#define NUM_SAMPLES 1024
-#define FREQUENCY 10000.0
+#define NUM_SAMPLES 10240
+#define FREQUENCY 4000.0
+#define CHANNEL 0
 
 #define err_printf(fmt, ...) \
         do { printf ("%s:%d:%s(): " fmt "\n", __FILE_NAME__, \
@@ -34,7 +35,7 @@ int main (int arg, char **argv)
     }
 
     status = AIOUSB::ADC_AcquireChannel(device,
-                                        2,
+                                        CHANNEL,
                                         FREQUENCY,
                                         NUM_SAMPLES,
                                         data_buffer);
