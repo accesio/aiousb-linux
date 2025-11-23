@@ -2,13 +2,40 @@
 #include <stdlib.h>
 #include "aiousb.h"
 
-#define NUM_SAMPLES 10240
-#define FREQUENCY 4000.0
-#define CHANNEL 0
+#define NUM_SAMPLES 1024
+#define FREQUENCY 1000.0
+#define CHANNEL 2
+#define GAIN_CODE 0x80
 
 #define err_printf(fmt, ...) \
         do { printf ("%s:%d:%s(): " fmt "\n", __FILE_NAME__, \
                                 __LINE__, __func__, ##__VA_ARGS__); } while (0)
+
+void dump_counts(uint16_t *data_buffer, int columns)
+{
+    for (int i = 0; i < NUM_SAMPLES; i++)
+    {
+        printf("%5u ", data_buffer[i]);
+        if ((i + 1) % columns == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n");
+}
+
+void dump_volts(double *data_buffer, int columns)
+{
+    for (int i = 0; i < NUM_SAMPLES; i++)
+    {
+        printf("%8.4f ", data_buffer[i]);
+        if ((i + 1) % columns == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n");
+}
 
 
 int main (int arg, char **argv)
@@ -36,9 +63,20 @@ int main (int arg, char **argv)
 
     status = AIOUSB::ADC_AcquireChannel(device,
                                         CHANNEL,
+                                        GAIN_CODE,
                                         FREQUENCY,
                                         NUM_SAMPLES,
                                         data_buffer);
     err_printf("status(ADC_AcquireChannel) = %d", status);
+    dump_counts(data_buffer, 16);
+
+    status = AIOUSB::ADC_AcquireChannelV(device,
+                                        CHANNEL,
+                                        GAIN_CODE,
+                                        FREQUENCY,
+                                        NUM_SAMPLES,
+                                        (double *)data_buffer);
+    err_printf("status(ADC_AcquireChannelV) = %d", status);
+    dump_volts((double *)data_buffer, 8);
     return 0;
 }

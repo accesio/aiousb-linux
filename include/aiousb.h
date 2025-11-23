@@ -175,7 +175,12 @@ int ADC_GetFastScanV(aiousb_device_handle device, double *data);
 int ADC_ResetFastScanV(aiousb_device_handle device);
 
 int ADC_AcquireChannel(aiousb_device_handle device, uint32_t channel,
-                    double frequency, uint32_t samples, uint16_t *buff);
+                    uint8_t gain_code,double frequency, uint32_t samples,
+                    uint16_t *buff);
+
+int ADC_AcquireChannelV(aiousb_device_handle device, uint32_t channel,
+                    uint8_t gain_code,double frequency, uint32_t samples,
+                    double *buff);
 
 int DAC_SetBoardRange (aiousb_device_handle device, uint32_t range_code);
 

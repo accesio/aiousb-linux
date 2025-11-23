@@ -2925,7 +2925,8 @@ int ADC_ResetFastScanV(aiousb_device_handle device)
 }
 
 int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
-                    double frequency, uint32_t samples, uint16_t *buff)
+                    uint8_t gain_code, double frequency, uint32_t samples,
+                    uint16_t *buff)
 {
   int status;
   uint8_t config_buff[MAX_CONFIG_SIZE] = {0};
@@ -2956,6 +2957,8 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       aiousb_library_err_print("ADC_GetConfig returned %d", status);
       return status;
     }
+
+  memset(config_buff, gain_code, 0xf);
 
     //set channel
   config_buff[0x12] = (channel << 4 & 0xf0) | (channel & 0xf);
@@ -3024,6 +3027,8 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       {
         uint16_t *temp_buff = (uint16_t *)malloc(bytes_left);
 
+        aiousb_library_err_print("bytes_left not zero. bytes_left = %d", bytes_left);
+
         status = AWU_GenericBulkIn(device,
                                         0,
                                         temp_buff,
@@ -3035,6 +3040,36 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
 
   return status;
 }
+
+int ADC_AcquireChannelV(aiousb_device_handle device, uint32_t channel,
+                    uint8_t gain_code,double frequency, uint32_t samples,
+                    double *buff)
+{
+  uint16_t *counts_buff = (uint16_t *)malloc(sizeof(uint16_t) * samples);
+  int status;
+
+  status = ADC_AcquireChannel(device,
+                          channel,
+                          gain_code,
+                          frequency,
+                          samples,
+                          counts_buff);
+  if (status)
+    {
+      aiousb_library_err_print("ADC_AcquireChannel returned %d", status);
+      goto ERR_OUT;
+    }
+
+  for (size_t i = 0 ; i < samples ; i++)
+    {
+      buff[i] = volts_from_counts(device, counts_buff[i], gain_code);
+    }
+
+ERR_OUT:
+  free(counts_buff);
+  return status;
+}
+
 
     
 
