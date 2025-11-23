@@ -2925,7 +2925,7 @@ int ADC_ResetFastScanV(aiousb_device_handle device)
 }
 
 int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
-                    uint8_t gain_code, double frequency, uint32_t samples,
+                    uint8_t gain_code, double *frequency, uint32_t samples,
                     uint16_t *buff)
 {
   int status;
@@ -2934,7 +2934,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
 
   uint32_t bytes_left, control_data;
   uint32_t used = 0;
-  double duration = ((double)samples / frequency ) * 1000.0;
+  double duration = 0.0;
 
   aiousb_debug_print("Enter");
   if (!(device->descriptor.b_adc_bulk))
@@ -2959,6 +2959,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
     }
 
   memset(config_buff, gain_code, 0xf);
+  config_buff[0x13] = 0;  //no oversampling
 
     //set channel
   config_buff[0x12] = (channel << 4 & 0xf0) | (channel & 0xf);
@@ -2974,7 +2975,8 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       return status;
     }
 
-  status = CTR_8254StartOutputFreq(device, 0, &frequency);
+  status = CTR_8254StartOutputFreq(device, 0, frequency);
+  duration = (samples / (*frequency)) * 1000.0;
 
   if (status)
     {

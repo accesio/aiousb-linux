@@ -45,6 +45,7 @@ int main (int arg, char **argv)
     uint8_t Config[32];
     uint32_t ConfigSize = sizeof(Config);
     uint16_t data_buffer[sizeof (uint16_t) * NUM_SAMPLES] = {0};
+    double data_buffer_v[sizeof (double) * NUM_SAMPLES] = {0};
 
     AIOUSB::AiousbInit();
     
@@ -75,8 +76,8 @@ int main (int arg, char **argv)
                                         GAIN_CODE,
                                         FREQUENCY,
                                         NUM_SAMPLES,
-                                        (double *)data_buffer);
+                                        data_buffer_v);
     err_printf("status(ADC_AcquireChannelV) = %d", status);
-    dump_volts((double *)data_buffer, 8);
+    dump_volts(data_buffer_v, 8);
     return 0;
 }
