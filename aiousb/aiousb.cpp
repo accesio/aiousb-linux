@@ -3044,7 +3044,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
 }
 
 int ADC_AcquireChannelV(aiousb_device_handle device, uint32_t channel,
-                    uint8_t gain_code,double frequency, uint32_t samples,
+                    uint8_t gain_code,double *frequency, uint32_t samples,
                     double *buff)
 {
   uint16_t *counts_buff = (uint16_t *)malloc(sizeof(uint16_t) * samples);
@@ -4201,6 +4201,30 @@ int ADC_GetFastScanV(unsigned long device_index, double *data)
 int ADC_ResetFastScanV(unsigned long device_index)
 {
   return ADC_ResetFastScanV(aiousb_handle_by_index_private(device_index));
+}
+
+int ADC_AcquireChannel(unsigned long device_index, uint32_t channel,
+                    uint8_t gain_code, double *frequency, uint32_t samples,
+                    uint16_t *buff)
+{
+  return ADC_AcquireChannel(aiousb_handle_by_index_private(device_index),
+                    channel,
+                    gain_code,
+                    frequency,
+                    samples,
+                    buff);
+}
+
+int ADC_AcquireChannelV(unsigned long device_index, uint32_t channel,
+                    uint8_t gain_code, double *frequency, uint32_t samples,
+                    double *buff)
+{
+  return ADC_AcquireChannelV(aiousb_handle_by_index_private(device_index),
+                    channel,
+                    gain_code,
+                    frequency,
+                    samples,
+                    buff);
 }
 
 int DAC_SetBoardRange (unsigned long device_index, uint32_t range_code)

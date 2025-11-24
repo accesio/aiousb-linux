@@ -46,6 +46,7 @@ int main (int arg, char **argv)
     uint32_t ConfigSize = sizeof(Config);
     uint16_t data_buffer[sizeof (uint16_t) * NUM_SAMPLES] = {0};
     double data_buffer_v[sizeof (double) * NUM_SAMPLES] = {0};
+    double frequency = FREQUENCY;
 
     AIOUSB::AiousbInit();
     
@@ -65,16 +66,18 @@ int main (int arg, char **argv)
     status = AIOUSB::ADC_AcquireChannel(device,
                                         CHANNEL,
                                         GAIN_CODE,
-                                        FREQUENCY,
+                                        &frequency,
                                         NUM_SAMPLES,
                                         data_buffer);
     err_printf("status(ADC_AcquireChannel) = %d", status);
     dump_counts(data_buffer, 16);
 
+    frequency = FREQUENCY;
+
     status = AIOUSB::ADC_AcquireChannelV(device,
                                         CHANNEL,
                                         GAIN_CODE,
-                                        FREQUENCY,
+                                        &frequency,
                                         NUM_SAMPLES,
                                         data_buffer_v);
     err_printf("status(ADC_AcquireChannelV) = %d", status);
