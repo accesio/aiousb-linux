@@ -49,7 +49,7 @@ int main (int arg, char **argv)
     double frequency = FREQUENCY;
 
     AIOUSB::AiousbInit();
-    
+
     status = AIOUSB::DeviceHandleByIndex(diOnly, &device);
 
     if (status)

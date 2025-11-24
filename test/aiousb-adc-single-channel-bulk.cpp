@@ -39,4 +39,4 @@ void SampleChannel(AIOUSB::aiousb_device_handle dev, int channel, double sampleR
     err_printf("status(ADC_SetConfig) = %d", status);
     status = AIOUSB::CTR_8254StartOutputFreq(dev, 0, &sampleRate);
     err_printf("status(CTR_8254StartOutputFreq) = %d", status);
-    
+

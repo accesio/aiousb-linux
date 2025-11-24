@@ -676,7 +676,6 @@ int GenericVendorRead(aiousb_device_handle device,
   return status;
 }
 
-
 int GenericVendorWrite(aiousb_device_handle device,
             uint8_t request, uint16_t value, uint16_t index,
             uint16_t size, void *data)
@@ -3006,7 +3005,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
         {
           aiousb_library_err_print("bulk_in fail");
         }
-        
+
       control_data = 0x00020002;
       GenericVendorWrite(device,
                                       0xbc,
@@ -3071,9 +3070,6 @@ ERR_OUT:
   free(counts_buff);
   return status;
 }
-
-
-    
 
 int ADC_RangeAll(aiousb_device_handle device, uint8_t *gain_codes,
                 uint32_t b_differential)
