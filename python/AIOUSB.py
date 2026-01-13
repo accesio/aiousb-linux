@@ -81,7 +81,7 @@ def GetDeviceByEEPROMByte(boardID):
     Determines the assigned Device Index of a device in a deterministic way, especially if you're controlling more than one device in the same system. It finds the device with the specified “board ID” at address 0x000 in the custom EEPROM area. “Board ID” is arbitrary, but you should avoid 0x00 and 0xFF, since those can match uninitialized EEPROMs.
     For a larger “board ID”, and/or one at an arbitrary location, use GetDeviceByEEPROMData().
     """
-    return AIOUSB.GetDeviceByEEPROMByte(c_ubyte(boardID))
+    return AIOUSB.GetDeviceByEEPROMByte(c_uint8(boardID))
 
 
 def GetDeviceByEEPROMData(offset, len, boardID):
@@ -208,7 +208,7 @@ def DIO_Write8(index, byteIndex, Data):
 
 def DIO_Write1(index, bitIndex, Data):
     """Write to a single digital output bit on a device."""
-    return AIOUSB.DIO_Write1(index, c_int(bitIndex), c_ubyte(Data))
+    return AIOUSB.DIO_Write1(index, c_int(bitIndex), c_uint8(Data))
 
 
 def DIO_ReadAll(index):
@@ -572,6 +572,18 @@ def ADC_SetConfig(index, config):
     for i in range(L):
         configBuf[i] = config[i]
     return AIOUSB.ADC_SetConfig(index, byref(configBuf), byref(configLen))
+
+def ADC_AcquireChannel(index, channel, gain_code, frequency, samples):
+    freq = c_double(frequency)
+    buffer = (c_uint16 * samples)()
+    status = AIOUSB.ADC_AcquireChannel(index, c_uint32(channel), c_uint8(gain_code), byref(freq), c_uint32(samples), buffer)
+    return status, freq.value, buffer,
+
+def ADC_AcquireChannelV(index, channel, gain_code, frequency, samples):
+    freq = c_double(frequency)
+    buffer = (c_double * samples)()
+    status = AIOUSB.ADC_AcquireChannelV(index, c_uint32(channel), c_uint8(gain_code), byref(freq), samples, buffer)
+    return status, freq.value, buffer
 
 
 def callCallback(index):

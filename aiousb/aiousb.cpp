@@ -499,7 +499,7 @@ aiousb_device_handle aiousb_handle_by_index_private(unsigned long device_index)
   aiousb_debug_print("Enter");
 
 
-  if (device_index == diOnly)
+  if (int(device_index) == int(diOnly))
   {
     int device_count = 0;
     int device_index = 0;
@@ -606,6 +606,11 @@ uint32_t DeviceIndexByEEPROMByte (uint8_t Data)
   pthread_mutex_unlock(&aiousb_devices_lock);
   aiousb_debug_print("returning %d", ret_val);
   return ret_val;
+}
+
+uint32_t GetDeviceByEEPROMByte (uint8_t Data)
+{
+  return DeviceIndexByEEPROMByte(Data);
 }
 
 uint32_t GetDevices()
@@ -2941,6 +2946,10 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       return -EBADRQC;
     }
 
+  if (frequency == nullptr || buff == nullptr)
+    {
+      return -EINVAL;
+    }
   if (samples % 512)
     {
       aiousb_library_err_print("Invalid sample count");

@@ -63,7 +63,7 @@ int main (int arg, char **argv)
         data_buffer[i] = i;
     }
 
-    status = AIOUSB::ADC_AcquireChannel(device,
+    status = AIOUSB::ADC_AcquireChannel(diOnly,
                                         CHANNEL,
                                         GAIN_CODE,
                                         &frequency,
@@ -74,7 +74,7 @@ int main (int arg, char **argv)
 
     frequency = FREQUENCY;
 
-    status = AIOUSB::ADC_AcquireChannelV(device,
+    status = AIOUSB::ADC_AcquireChannelV(diOnly,
                                         CHANNEL,
                                         GAIN_CODE,
                                         &frequency,

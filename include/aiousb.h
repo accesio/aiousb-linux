@@ -28,6 +28,7 @@ int DeviceHandleByPath (const char *fname, aiousb_device_handle *device);
 int DeviceHandleByIndex(unsigned long device_index, aiousb_device_handle *device);
 int DeviceIndexByPath (const char *fname, unsigned long *device_index);
 uint32_t DeviceIndexByEEPROMByte (uint8_t Data);
+uint32_t GetDeviceByEEPROMByte (uint8_t Data);
 uint32_t GetDevices();
 #ifdef __cplusplus
 }
