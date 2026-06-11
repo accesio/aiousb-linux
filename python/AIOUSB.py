@@ -7,6 +7,7 @@ Consult https://accesio.com/MANUALS/USB%20Software%20Reference%20Manual.html for
 """
 from typing import *
 import ctypes
+from enum import IntEnum
 from ctypes import (
     c_int, c_uint8, c_uint16, c_uint32, c_uint64, c_ulong, c_size_t,
     c_double, c_char_p, c_void_p, POINTER, Structure, CFUNCTYPE,
@@ -47,6 +48,26 @@ def _load_library():
 
 
 AIOUSB = _load_library()
+
+
+class GainCode(IntEnum):
+    """ADC gain/range code values used by several analog-input APIs."""
+    UNIPOLAR_0_TO_10V = 0
+    BIPOLAR_PLUS_MINUS_10V = 1
+    UNIPOLAR_0_TO_5V = 2
+    BIPOLAR_PLUS_MINUS_5V = 3
+    UNIPOLAR_0_TO_2V = 4
+    BIPOLAR_PLUS_MINUS_2V = 5
+    UNIPOLAR_0_TO_1V = 6
+    BIPOLAR_PLUS_MINUS_1V = 7
+
+
+def _coerce_gain_code(value):
+    """Accept raw ints or GainCode enum values for gain-code parameters."""
+    try:
+        return int(value)
+    except Exception as exc:
+        raise TypeError("gain_code must be an int or GainCode") from exc
 
 diOnly = -3
 """AIOUSB sentinel value DeviceIndex meaning "the only device found"."""
@@ -479,7 +500,7 @@ def ADC_Range1(index, channel, gaincode, bDifferential):
     Note:
         Although USB serializes operations across the cable this function performs several sequential transactions and is therefore not process-safe.
     """
-    return AIOUSB.ADC_Range1(index, channel, c_ubyte(gaincode), bDifferential)
+    return AIOUSB.ADC_Range1(index, channel, c_ubyte(_coerce_gain_code(gaincode)), bDifferential)
 
 
 def ADC_SetOversample(index, oversample):
@@ -576,13 +597,13 @@ def ADC_SetConfig(index, config):
 def ADC_AcquireChannel(index, channel, gain_code, frequency, samples):
     freq = c_double(frequency)
     buffer = (c_uint16 * samples)()
-    status = AIOUSB.ADC_AcquireChannel(index, c_uint32(channel), c_uint8(gain_code), byref(freq), c_uint32(samples), buffer)
+    status = AIOUSB.ADC_AcquireChannel(index, c_uint32(channel), c_uint8(_coerce_gain_code(gain_code)), byref(freq), c_uint32(samples), buffer)
     return status, freq.value, buffer,
 
 def ADC_AcquireChannelV(index, channel, gain_code, frequency, samples):
     freq = c_double(frequency)
     buffer = (c_double * samples)()
-    status = AIOUSB.ADC_AcquireChannelV(index, c_uint32(channel), c_uint8(gain_code), byref(freq), samples, buffer)
+    status = AIOUSB.ADC_AcquireChannelV(index, c_uint32(channel), c_uint8(_coerce_gain_code(gain_code)), byref(freq), samples, buffer)
     return status, freq.value, buffer
 
 
