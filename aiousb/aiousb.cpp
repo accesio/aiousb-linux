@@ -2365,7 +2365,7 @@ int ADC_GetScanV(aiousb_device_handle device, double *data)
   uint8_t start_channel, end_channel;
   uint16_t *ad_buff = NULL;
   uint32_t ad_buff_length = 0;
-  int i, j, channel, total, data_index, range_code;
+  int i, j, channel, total, range_code;
 
   aiousb_debug_print("Enter");
 
@@ -2386,7 +2386,6 @@ int ADC_GetScanV(aiousb_device_handle device, double *data)
       goto ERR_OUT;
     }
 
-  data_index = 0;
   if (config_buff[0x13] != 0)
     {
       i = 0;
@@ -2398,10 +2397,9 @@ int ADC_GetScanV(aiousb_device_handle device, double *data)
               total += ad_buff[i * ( 1 + config_buff[0x13] ) + j];
             }
           range_code = config_buff[channel >> device->descriptor.range_shift];
-          data[data_index] = volts_from_counts(device,
+          data[channel] = volts_from_counts(device,
                                     total / config_buff[0x13],
                                     range_code);
-          data_index++;
           i++;
         }
     }
@@ -2966,7 +2964,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       return status;
     }
 
-  memset(config_buff, gain_code, 0xf);
+  memset(config_buff, gain_code, 0x10);
   config_buff[0x13] = 0;  //no oversampling
 
     //set channel

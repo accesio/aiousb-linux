@@ -16,6 +16,8 @@ AIOUSB::aiousb_device_handle Device;
 
 #define START_CHANNEL 0
 #define END_CHANNEL 7
+#define OVERSAMPLE 3
+#define FREQUENCY 5000.0
 #define LOOP_COUNT 10000
 
 void DumpConfig(AIOUSB::aiousb_device_handle Device)
@@ -36,6 +38,7 @@ void DumpConfig(AIOUSB::aiousb_device_handle Device)
 int main (int argc, char **argv)
 {
   double voltages[64];
+  double frequency = FREQUENCY;
   int status;
   timespec begin, end;
   uint8_t Config[32];
@@ -54,63 +57,18 @@ int main (int argc, char **argv)
       err_printf("Unable to open device");
     }
 
-  // DumpConfig(Device);
-  
-  // status = AIOUSB::ADC_SetCal(Device, ":AUTO:");
-  // err_printf("status(ADC_SetCal) = %d", status);
-  // DumpConfig(Device);
+  status = AIOUSB::ADC_GetConfig(Device, Config, &ConfigSize);
+  err_printf("status(ADC_GetConfig) = %d", status);
 
-  // status = AIOUSB::ADC_SetScanLimits(Device, START_CHANNEL, END_CHANNEL);
-  // err_printf("status(ADC_SetScanLimits) = %d", status);
-  // DumpConfig(Device);
+  if (status)
+    {
+      return status;
+    }
 
-  // status = AIOUSB::ADC_SetOversample(Device, 5);
-  // err_printf("status(ADC_SetOversample) = %d", status);
-  // DumpConfig(Device);
-
-  // status = AIOUSB::DAC_SetBoardRange(Device, 0); // used to unsleep the ADC reference on USB-AO16-16A and relateds to the adc-getscanv and now it works
-  // err_printf("status(DAC_SetBoardRange) = %d", status);
-  // DumpConfig(Device);
-
-  // uint8_t gain_codes[16];
-  // memset(gain_codes, 0x01, sizeof(gain_codes));
-  // status = AIOUSB::ADC_RangeAll(Device, gain_codes, true);
-  // err_printf("status(ADC_RangeAll) = %d", status);
-  // DumpConfig(Device);
-
-  Config[0x00] = 0x09; // range
-  Config[0x01] = 0x09; // range
-  Config[0x02] = 0x09; // range
-  Config[0x03] = 0x09; // range
-  Config[0x04] = 0x09; // range
-  Config[0x05] = 0x09; // range
-  Config[0x06] = 0x09; // range
-  Config[0x07] = 0x09; // range
-  Config[0x08] = 0x09; // range
-  Config[0x09] = 0x09; // range
-  Config[0x0A] = 0x09; // range
-  Config[0x0B] = 0x09; // range
-  Config[0x0C] = 0x09; // range
-  Config[0x0D] = 0x09; // range
-  Config[0x0E] = 0x09; // range
-  Config[0x0F] = 0x09; // range
-  Config[0x10] = 0x00; // calibration code
-  Config[0x11] = 0x05; // trigger & counter mode
-    // Start and End Channel, low nybbles 0bEEEESSSS  (0xF0 = 0b11110000)
-  Config[0x12] = (END_CHANNEL & 0xf) << 4 | (START_CHANNEL & 0xf);
-
-  Config[0x13] = 0x00; // Oversamples
-
-  // Start and End Channel, high nybbles 0bEEEESSSS (0x50 = 0b01010000)
-  Config[0x14] = (END_CHANNEL & 0xf0) | (START_CHANNEL & 0xf0) >> 4;
-
-
-  // status = AIOUSB::ADC_SetCal(Device, ":AUTO:");
-  // err_printf("status(ADC_SetCal) = %d", status);
-  // DumpConfig(Device);
-
+  Config[0x11] = 0x05; // scans started by counter/timer
   status = AIOUSB::ADC_SetConfig(Device, Config, &ConfigSize);
   err_printf("status(ADC_SetConfig) = %d", status);
+
   DumpConfig(Device);
 
   status = AIOUSB::ADC_GetScanV(Device, voltages);

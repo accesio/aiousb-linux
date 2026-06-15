@@ -4,7 +4,7 @@
 
 #define NUM_SAMPLES 1024
 #define FREQUENCY 1000.0
-#define CHANNEL 2
+#define CHANNEL 0
 #define GAIN_CODE 0x80
 
 #define err_printf(fmt, ...) \
