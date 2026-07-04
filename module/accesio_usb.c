@@ -680,12 +680,20 @@ static int ioctl_ACCESIO_USB_CONTROL_XFER (struct accesio_usb_device_info *dev, 
 
     if ( (status >= 0) && (context.read))
     {
-        bytes_remaining = copy_to_user(context.data, dev->dma_capable_buffer, context.size);
+        if (NULL == context.data)
+        {
+            aio_driver_err_print("context.data is NULL after usb_control_msg()");
+            status = -EINVAL;
+        }
+        else
+        {
+            bytes_remaining = copy_to_user(context.data, dev->dma_capable_buffer, context.size);
 
             if (bytes_remaining)
             {
                 aio_driver_err_print("copy_to_user returned %d\n", bytes_remaining);
             }
+        }
     }
 
     return status;
@@ -735,6 +743,9 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
 
     aio_driver_dev_print("filling urb");
 
+    /* Re-arm completion for each transfer when reusing a persistent URB. */
+    reinit_completion(&dev->urb_completion);
+
     usb_fill_bulk_urb(dev->urb,
                     dev->udev,
                     pipe,
@@ -765,6 +776,14 @@ static int ioctl_ACCESIO_USB_BULK_XFER (struct accesio_usb_device_info *dev, uns
         if (status == 0)
         {
             aio_driver_err_print("wait_for_completion_timeout returned %d", status);
+            /* unlink is async; kill waits until the URB is fully retired. */
+            usb_kill_urb(dev->urb);
+            /* Some devices leave the bulk endpoint halted after timeouts. */
+            status = usb_clear_halt(dev->udev, pipe);
+            if (status < 0)
+            {
+                aio_driver_err_print("usb_clear_halt failed with %d", status);
+            }
             status = -ETIMEDOUT;
             goto ERR_OUT;
         }
@@ -831,7 +850,8 @@ static int accesio_usb_ioctl_internal(struct file* filp, unsigned int cmd, unsig
             {
                 //TODO: Should we be tracking whether or not there's a transfer in
                 // flight? Do we care if the USB core doesn't care?
-                status = usb_unlink_urb(dev->urb);
+                usb_kill_urb(dev->urb);
+                status = 0;
             }
             break;
         case ACCESIO_USB_GET_PORT_SPEED:
