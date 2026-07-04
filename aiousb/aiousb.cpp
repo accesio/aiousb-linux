@@ -3006,7 +3006,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
                                       buff,
                                       sizeof(uint16_t) * samples,
                                       (int *)&used,
-                                      duration + 100);
+                                      duration + 200);
 
         if (status)
         {
