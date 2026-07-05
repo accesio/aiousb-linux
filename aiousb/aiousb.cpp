@@ -2931,6 +2931,7 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
                     uint16_t *buff)
 {
   int status;
+  int temp;
   uint8_t config_buff[MAX_CONFIG_SIZE] = {0};
   uint32_t config_size = sizeof(config_buff);
 
@@ -3035,9 +3036,9 @@ int ADC_AcquireChannel( aiousb_device_handle device, uint32_t channel,
       {
         uint16_t *temp_buff = (uint16_t *)malloc(bytes_left);
 
-        aiousb_library_err_print("bytes_left not zero. bytes_left = %d", bytes_left);
+        aiousb_debug_print("bytes_left not zero. bytes_left = %d", bytes_left);
 
-        status = AWU_GenericBulkIn(device,
+        temp = AWU_GenericBulkIn(device,
                                         0,
                                         temp_buff,
                                         bytes_left,
